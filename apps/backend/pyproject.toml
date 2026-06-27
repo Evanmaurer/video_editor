@@ -23,6 +23,20 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
+ocr = [
+    "easyocr>=1.7.0",
+    "numpy>=1.26.0",
+    "opencv-python-headless>=4.8.0",
+]
+vision = [
+    "ultralytics>=8.0.0",
+    "numpy>=1.26.0",
+    "opencv-python-headless>=4.8.0",
+]
+embedding = [
+    "sentence-transformers>=2.2.0",
+    "Pillow>=10.0.0",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

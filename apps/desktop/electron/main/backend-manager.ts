@@ -28,6 +28,15 @@ export interface BackendStatusInfo {
 const READY_POLL_INTERVAL_MS = 100;
 const STARTUP_TIMEOUT_MS = 60_000;
 
+/** APIs the desktop app requires — stale servers missing any of these must not be used. */
+const REQUIRED_BACKEND_FEATURES = [
+  "media_library",
+  "playback",
+  "export",
+  "metadata",
+  "analysis",
+] as const;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -113,7 +122,7 @@ export class BackendManager {
 
     try {
       await waitForBackendReady(connection.url);
-      await this.assertMediaLibraryAvailable(connection.url);
+      await this.assertBackendCapabilities(connection.url);
       this.connection = connection;
       this.resolvedUrl = connection.url;
       this.status = "ready";
@@ -126,18 +135,48 @@ export class BackendManager {
     }
   }
 
-  private async assertMediaLibraryAvailable(baseUrl: string): Promise<void> {
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/health`, {
+  private async assertBackendCapabilities(baseUrl: string): Promise<void> {
+    const normalized = baseUrl.replace(/\/$/, "");
+    const response = await fetch(`${normalized}/health`, {
       signal: AbortSignal.timeout(2_000),
     });
     if (!response.ok) {
       throw new Error(`Backend health check failed: HTTP ${response.status}`);
     }
     const health = (await response.json()) as { features?: string[] };
-    if (!health.features?.includes("media_library")) {
-      throw new Error(
-        "Connected backend is missing the media library API. Stop any old backend on port 8000 and restart the app.",
-      );
+    const available = new Set(health.features ?? []);
+    const missing = REQUIRED_BACKEND_FEATURES.filter((feature) => !available.has(feature));
+    if (missing.length === 0) {
+      return;
+    }
+
+    let portHint = "8000";
+    try {
+      portHint = new URL(normalized).port || portHint;
+    } catch {
+      // keep default
+    }
+
+    throw new Error(
+      `Connected backend is outdated (missing: ${missing.join(", ")}). ` +
+        `Stop the old server on port ${portHint} and restart the app. ` +
+        `Example: kill $(lsof -ti:${portHint})`,
+    );
+  }
+
+  private async tryConnectExistingIfCapable(
+    config: ResolvedBackendConfig,
+    succeed: (connection: BackendConnection) => void,
+    fail: (message: string) => void,
+  ): Promise<void> {
+    if (!config.useFixedUrl || !config.url) {
+      return;
+    }
+    try {
+      await this.assertBackendCapabilities(config.url);
+      void succeed(buildConnection(config.url, config.token));
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -214,7 +253,7 @@ export class BackendManager {
         }
         try {
           await waitForBackendReady(connection.url);
-          await this.assertMediaLibraryAvailable(connection.url);
+          await this.assertBackendCapabilities(connection.url);
           resolved = true;
           clearTimeout(timeout);
           this.connection = connection;
@@ -235,10 +274,7 @@ export class BackendManager {
       };
 
       const tryConnectExisting = () => {
-        if (!config.useFixedUrl || !config.url) {
-          return;
-        }
-        void succeed(buildConnection(config.url, config.token));
+        void this.tryConnectExistingIfCapable(config, succeed, fail);
       };
 
       this.process.stdout?.on("data", (chunk: Buffer) => {

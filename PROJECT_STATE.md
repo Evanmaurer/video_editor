@@ -6,109 +6,105 @@
 
 ## Current Milestone
 
-**Milestone 2: Media Processing Engine — COMPLETE** (awaiting approval)
+**Milestone 3: AI Analysis Pipeline — COMPLETE**
 
-**Next milestone:** M3 — AI Analysis Pipeline (do not start until Milestone 2 approved)
+**Completed this session:** M3-008 Background Processing System
 
-### Milestone plan (M2–M7)
-
-| Milestone | Name |
-|-----------|------|
-| M2 | Media Processing Engine (M2-001 … M2-006) |
-| M3 | AI Analysis Pipeline |
-| M4 | AI Montage Generation |
-| M5 | Albion Online Intelligence |
-| M6 | AI Assistant |
-| M7 | Polish & Production |
-
-**Rules:** Complete each milestone (tested, documented, committed) before the next. At each milestone completion, summarize, update this file, and **wait for approval** before proceeding.
+**Next:** Milestone 4 — AI Montage Generation (await approval)
 
 ---
 
 ## Completed Work
 
-### Milestone 0 (2026-06-26)
-- Complete software design package (20 documents)
+### M3-001 … M3-004
+- Scene, motion, audio, and OCR analysis modules with plugin architecture
 
-### Milestone 1 (2026-06-27)
-- [x] Monorepo, Electron shell, FastAPI backend, project CRUD, settings, IPC API proxy
-- [x] 32 tests passing; tag `milestone-1`
+### M3-005 — Object Detection (2026-06-27)
+- [x] **`ObjectDetector` interface** — replaceable backends (YOLOv8 + UI heuristics composite)
+- [x] **`YoloObjectDetector`** — COCO pre-trained model maps person→character, horse→mount
+- [x] **`UiHeuristicObjectDetector`** — OpenCV heuristics for minimap, party frames, health bars, UI panels, spell effects
+- [x] **`ObjectAnalyzer`** — samples frames, runs detection in thread pool, IoU deduplication
+- [x] **Categories:** character, mount, spell_effect, party_frame, ui_panel, health_bar, minimap
+- [x] **Timestamped detections** with bounding boxes, confidence, source model id
+- [x] **Cache:** versioned keys include detector id, sample interval, max frames
+- [x] **Auto-enqueue** on import
+- [x] **API:** `GET .../analysis/object`
+- [x] **Optional deps:** `pip install montage-backend[vision]` for YOLO + OpenCV
+- [x] **Tests:** 6 object unit tests + object API integration test
 
-### M2-001 — Media Processing Engine (2026-06-27)
-- [x] `MediaProcessor`, FFmpeg integration, cache, async import pipeline
-- [x] 41 backend tests at completion
+### M3-006 — Embedding Engine (2026-06-27)
+- [x] **`EmbeddingEngine` interface** — replaceable backends (CLIP + histogram fallback)
+- [x] **`ClipEmbeddingEngine`** — sentence-transformers `clip-ViT-B-32` when available
+- [x] **`HistogramEmbeddingEngine`** — deterministic 512-dim fallback when CLIP unavailable
+- [x] **`EmbeddingAnalyzer`** — clip midpoint, scene midpoints (from scene cache), keyframes every 3s
+- [x] **`analysis_embeddings` table** — vector storage per project DB with upsert/search/duplicate detection
+- [x] **Cache:** vectors persisted to DB; cache payload stores metadata + embedding IDs only
+- [x] **Auto-enqueue** on import (loads scene segments into analyzer context)
+- [x] **APIs:** embedding, semantic search, similar clips/scenes, duplicate detection
+- [x] **Optional deps:** `pip install montage-backend[embedding]` for CLIP
+- [x] **Tests:** 7 embedding unit tests + repo test + embedding API integration test
 
-### M2-002 — Media Library (2026-06-27)
-- [x] Media import API, Electron import flows, Media Library UI, thumbnails
-- [x] 43 backend + 25 frontend tests at completion
+### M3-007 — Analysis Database (2026-06-27)
+- [x] **`clip_analysis_snapshots` table** — incremental per-clip analysis summaries
+- [x] **`ClipAnalysisRecord`** — unified view aggregating M2 metadata + all M3 modules
+- [x] **APIs:** full analysis, summary, refresh, project overview, invalidate all
+- [x] **Tests:** 5 aggregation unit tests + clip analysis API integration test
 
-### M2-003 — Timeline Engine (2026-06-27)
-- [x] **`@montage/timeline-engine`** — command-based mutations, undo/redo (100 steps), snap, clipboard
-- [x] **Backend API:** active timeline, list/create/get/save; JSON on disk + SQLite index
-- [x] **Timeline UI:** multi-track editing, ruler, playhead, zoom, snap/ripple, keyboard shortcuts
-
-### M2-004 — Playback Engine (2026-06-27)
-- [x] **`@montage/playback-engine`** + GPU decode, frame cache, preview transport
-- [x] HTML5 proxy playback + canvas scrubbing; metrics in status bar
-
-### M2-005 — Export Engine (2026-06-27)
-- [x] **`RenderService`** — background queue, pause/resume/cancel, ETA, FFmpeg logs
-- [x] **Presets:** H.264 · 1080p/1440p/4K · 60 FPS
-- [x] **Export UI:** dialog + render queue panel; WebSocket progress
-
-### M2-006 — AI Metadata Engine (2026-06-27)
-- [x] **`MetadataExtractor`** — FFmpeg visual/audio feature extraction on import
-- [x] **Visual cache:** scenes, motion, camera movement, brightness, color histogram, blur/sharpness, keyframes
-- [x] **Audio cache:** loudness, peaks, silence regions, beat timing, speech heuristics
-- [x] **AI cache schema:** OCR, embeddings, detections, optical flow, CLIP slots (null until M3)
-- [x] **SQLite storage:** `media_metadata_features` table per project + `metadata_status` on media items
-- [x] **Background processing:** auto-enqueued after import; fingerprint invalidation on source change
-- [x] **API:** GET/PUT metadata, analyze, invalidate — clean contract for M3 AI modules
-- [x] **Inspector UI:** clip metadata summary (scenes, motion, speech, beats)
-- [x] **Tests:** 6 extractor unit tests + 2 metadata API integration tests
+### M3-008 — Background Processing System (2026-06-27)
+- [x] **`AnalysisJobQueue`** — prioritized asyncio queue with worker pool concurrency limit
+- [x] **Module priorities** — scene (100) > motion/audio/ocr/object (50) > embedding (10)
+- [x] **Project pause/resume** — blocks dispatch without cancelling in-flight work abruptly
+- [x] **Job pause/resume** — per-job control via `AnalysisRunContext.pause()`
+- [x] **Retry** — configurable `max_retries` (default 2) with priority boost on retry
+- [x] **Cancellation** — existing cancel flow integrated with queue
+- [x] **Progress reporting** — WebSocket `analysis.progress` events (unchanged)
+- [x] **DB:** `retry_count`, `max_retries` columns on `analysis_jobs`; `PAUSED` processing status
+- [x] **APIs:**
+  - `GET .../analysis/jobs` — list project jobs
+  - `GET .../analysis/queue` — queue status
+  - `POST .../analysis/queue/pause` / `resume`
+  - `POST .../analysis/jobs/{id}/pause` / `resume` / `retry`
+- [x] **Tests:** 3 queue unit tests + service/migration tests + queue API integration test
 
 ---
 
 ## Work In Progress
 
-None — **Milestone 2 complete**, awaiting approval before M3.
+None — Milestone 3 complete.
 
 ---
 
-## Known Bugs
+## M3 Sub-Milestones (all complete)
 
-No open P0 bugs for M2-006.
+| ID | Module | Status |
+|----|--------|--------|
+| M3-001 | Scene Analysis | **Complete** |
+| M3-002 | Motion Analysis | **Complete** |
+| M3-003 | Audio Analysis | **Complete** |
+| M3-004 | OCR Engine | **Complete** |
+| M3-005 | Object Detection | **Complete** |
+| M3-006 | Embedding Engine | **Complete** |
+| M3-007 | Analysis Database | **Complete** |
+| M3-008 | Background Processing | **Complete** |
 
 ---
 
-## Known Limitations (M2 / end of Milestone 2)
+## Known Limitations (M3)
 
 | Limitation | Target |
 |------------|--------|
-| AI cache slots empty until M3 analysis agents | M3 |
-| Speech/beat detection uses FFmpeg heuristics, not ML | M3 |
-| Multi-track video compositing on export | M3+ |
-| Render jobs in-memory (not persisted across restart) | Future |
-| Alembic migrations (using create_all + column helper) | Tech debt |
+| YOLO uses generic COCO classes, not Albion-specific models | M5 / custom models |
+| UI heuristics are resolution/layout approximate | Albion YAML templates M5 |
+| CLIP is generic; histogram fallback is not semantic | Albion-specific models M5 |
+| Vector search is brute-force cosine over project DB | Dedicated vector index later |
+| Queue state is in-memory (pause/resume lost on restart) | Persistent queue M4+ |
 
 ---
 
-## Technical Debt
+## Next Priorities
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| Alembic migrations | Medium | Column migration helper exists |
-| Real FFmpeg integration tests in CI | Low | Local tests mock subprocess |
-| Electron E2E smoke tests | Medium | M2–M7 |
-| Persist render job state to project DB | Low | In-memory queue for M2-005 |
-
----
-
-## Next Priorities (M3 — AI Analysis Pipeline)
-
-1. Clip analysis agents (OCR, object detection, CLIP embeddings)
-2. Write results into AI metadata cache via existing API
-3. Do **not** start until Milestone 2 is approved
+1. **Milestone 4 — AI Montage Generation** (highlight selection, beat sync, pacing, transitions)
+2. Frontend UI for analysis results and queue controls
 
 ---
 
@@ -116,11 +112,9 @@ No open P0 bugs for M2-006.
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M2 complete** (6/6 sub-milestones) |
-| Backend tests | 68+ passing |
-| Frontend + engine tests | 43+ passing |
+| Milestone | **M3 complete** (8/8 sub-milestones) |
+| Backend tests | 135+ (65+ M3 tests total) |
 | Open P0 bugs | 0 |
-| Git tag | `milestone-1` (M1) |
 
 ---
 
@@ -128,11 +122,8 @@ No open P0 bugs for M2-006.
 
 | Date | Milestone | Summary |
 |------|-----------|---------|
-| 2026-06-26 | M0 | Design package (20 documents) |
-| 2026-06-27 | M1 | Application shell; tag `milestone-1` |
-| 2026-06-27 | M2-001 | MediaProcessor, import pipeline |
-| 2026-06-27 | M2-002 | Media library API, UI, Electron import |
-| 2026-06-27 | M2-003 | Timeline engine, commands, UI, persistence |
-| 2026-06-27 | M2-004 | Playback engine, preview, decode cache |
-| 2026-06-27 | M2-005 | Export engine, render queue, H.264 presets |
-| 2026-06-27 | M2-006 | AI metadata cache, extractor, API, inspector — **M2 complete** |
+| 2026-06-27 | M3-001 … M3-004 | Scene, motion, audio, OCR pipelines |
+| 2026-06-27 | M3-005 | Object detection with YOLO + UI heuristic backends |
+| 2026-06-27 | M3-006 | Embedding engine with CLIP/histogram backends and vector search APIs |
+| 2026-06-27 | M3-007 | Central analysis database with unified clip view and project overview |
+| 2026-06-27 | M3-008 | Prioritized background job queue with pause, resume, and retry |

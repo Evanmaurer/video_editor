@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import type { MediaMetadataSummary } from "@montage/shared-types";
+import type { MediaMetadataSummary, ProcessingStatus } from "@montage/shared-types";
 import { useProjectStore } from "@/stores/project-store";
 import { useTimelineStore, getSelectedClips } from "@/stores/timeline-store";
 import { formatMsShort } from "@/components/timeline/time-format";
 import { getApiClient } from "@/services/api-client";
+
+const METADATA_POLL_MS = 2000;
+
+function isMetadataInProgress(status: ProcessingStatus | undefined): boolean {
+  return status === "pending" || status === "processing";
+}
 
 export function Inspector() {
   const project = useProjectStore((s) => s.project);
@@ -30,26 +36,46 @@ export function Inspector() {
     }
 
     let cancelled = false;
-    void (async () => {
+    const projectId = project.id;
+    const mediaId = primaryClip.media_item_id;
+
+    const loadMetadata = async (): Promise<MediaMetadataSummary | null> => {
       try {
-        const summary = await getApiClient().getMediaMetadata(
-          project.id,
-          primaryClip.media_item_id,
-        );
+        const summary = await getApiClient().getMediaMetadata(projectId, mediaId);
         if (!cancelled) {
           setMetadata(summary);
           setMetadataError(null);
         }
+        return summary;
       } catch (err) {
         if (!cancelled) {
           setMetadata(null);
-          setMetadataError(err instanceof Error ? err.message : "Metadata unavailable");
+          const message = err instanceof Error ? err.message : "Metadata unavailable";
+          const isStaleBackend =
+            message.includes("404") && message.toLowerCase().includes("not found");
+          setMetadataError(
+            isStaleBackend
+              ? "Metadata API unavailable — restart the app so the backend reloads (stop any old server on port 8000)."
+              : message,
+          );
         }
+        return null;
       }
-    })();
+    };
+
+    void loadMetadata();
+
+    const pollTimer = setInterval(() => {
+      void loadMetadata().then((summary) => {
+        if (summary && !isMetadataInProgress(summary.status) && !cancelled) {
+          clearInterval(pollTimer);
+        }
+      });
+    }, METADATA_POLL_MS);
 
     return () => {
       cancelled = true;
+      clearInterval(pollTimer);
     };
   }, [project?.id, primaryClip?.media_item_id, primaryClip?.id]);
 
@@ -121,11 +147,17 @@ export function Inspector() {
                     </>
                   )}
                 </div>
-                {metadata.status === "pending" || metadata.status === "processing" ? (
-                  <p className="text-[10px] text-muted">
-                    Metadata analysis runs in the background after import.
+                {metadata.status === "processing" && (
+                  <p className="text-[10px] text-muted">Analyzing clip metadata…</p>
+                )}
+                {metadata.status === "pending" && (
+                  <p className="text-[10px] text-muted">Queued for metadata analysis…</p>
+                )}
+                {metadata.status === "error" && (
+                  <p className="text-[10px] text-[#e74c3c]">
+                    Metadata analysis failed. Re-import the clip or restart the backend.
                   </p>
-                ) : null}
+                )}
               </>
             )}
           </section>

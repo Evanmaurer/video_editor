@@ -92,6 +92,14 @@ export const useMediaStore = create<MediaState>((set, get) => ({
       const api = getApiClient();
       const items = await api.listMedia(projectId, listParams(get()));
       set({ items, isLoading: false });
+
+      for (const item of items) {
+        if (item.import_status === "ready" && item.metadata_status === "pending") {
+          void api.analyzeMediaMetadata(projectId, item.id).catch(() => {
+            // Analysis runs in background; Inspector polls for completion.
+          });
+        }
+      }
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : String(err),

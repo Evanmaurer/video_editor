@@ -51,6 +51,7 @@ class MediaService:
         self._active_contexts: dict[str, ProcessingContext] = {}
         self._import_tasks: dict[str, asyncio.Task[None]] = {}
         self._metadata_enqueue: Callable[[str, str], Awaitable[None]] | None = None
+        self._analysis_enqueue: Callable[[str, str], Awaitable[None]] | None = None
 
     @property
     def processor(self) -> MediaProcessor:
@@ -68,6 +69,12 @@ class MediaService:
         callback: Callable[[str, str], Awaitable[None]] | None,
     ) -> None:
         self._metadata_enqueue = callback
+
+    def set_analysis_enqueue(
+        self,
+        callback: Callable[[str, str], Awaitable[None]] | None,
+    ) -> None:
+        self._analysis_enqueue = callback
 
     async def update_metadata_status(
         self,
@@ -332,6 +339,8 @@ class MediaService:
             logger.info("media_import_complete", media_id=media_id)
             if self._metadata_enqueue is not None:
                 await self._metadata_enqueue(media.project_id, media_id)
+            if self._analysis_enqueue is not None:
+                await self._analysis_enqueue(media.project_id, media_id)
         except ProcessingCancelledError:
             await self._mark_error(
                 session_factory,

@@ -20,6 +20,7 @@ _timeline_service: TimelineService | None = None
 _playback_service: PlaybackService | None = None
 _render_service: "RenderService | None" = None
 _metadata_service: "MetadataService | None" = None
+_analysis_service: "AnalysisService | None" = None
 
 
 async def ensure_database_started() -> None:
@@ -127,3 +128,21 @@ def get_metadata_service():
         )
         media_service.set_metadata_enqueue(_metadata_service.enqueue_analysis)
     return _metadata_service
+
+
+def get_analysis_service():
+    global _analysis_service
+    if _analysis_service is None:
+        from montage_backend.config import settings
+        from montage_backend.services.analysis_service import AnalysisService
+
+        media_service = get_media_service()
+        _analysis_service = AnalysisService(
+            get_project_service(),
+            worker_count=max(1, settings.worker_count // 2),
+        )
+        _analysis_service.wire_media_hooks(
+            get_media_item=media_service.get_media_item,
+        )
+        media_service.set_analysis_enqueue(_analysis_service.enqueue_default_modules)
+    return _analysis_service

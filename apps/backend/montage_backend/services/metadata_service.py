@@ -69,11 +69,19 @@ class MetadataService:
         return await self.get_metadata(project_id, media_id)
 
     async def get_metadata(self, project_id: str, media_id: str) -> MediaMetadataSummary:
-        await self._ensure_media_exists(project_id, media_id)
+        media = await self._ensure_media_exists(project_id, media_id)
         _, session_factory = await self._project_session(project_id)
         async with session_factory() as session:
             records = await self._repo.list_for_media(session, media_id)
-        return self._build_summary(media_id, records)
+        summary = self._build_summary(media_id, records)
+
+        if (
+            media.import_status == ImportStatus.READY
+            and summary.status == ProcessingStatus.PENDING
+        ):
+            await self.enqueue_analysis(project_id, media_id)
+
+        return summary
 
     async def get_feature(
         self,
@@ -206,7 +214,6 @@ class MetadataService:
         except Exception as exc:
             await self._set_media_status(project_id, media_id, ProcessingStatus.ERROR)
             logger.error("metadata_analysis_failed", media_id=media_id, error=str(exc))
-            raise
         finally:
             self._tasks.pop(media_id, None)
 

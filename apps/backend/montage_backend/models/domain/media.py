@@ -39,6 +39,7 @@ class StorageMode(str, Enum):
 class ProcessingStatus(str, Enum):
     PENDING = "pending"
     PROCESSING = "processing"
+    PAUSED = "paused"
     READY = "ready"
     ERROR = "error"
 

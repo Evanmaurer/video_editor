@@ -100,7 +100,7 @@ async def health() -> dict[str, object]:
     return {
         "status": "ok",
         "version": __version__,
-        "features": ["media_library", "playback", "export", "metadata"],
+        "features": ["media_library", "playback", "export", "metadata", "analysis"],
         "models_loaded": False,
         "queue_depth": media_service.queue.active_count,
         "export_queue_depth": render_service.queue_depth,
