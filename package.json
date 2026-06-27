@@ -1,0 +1,17 @@
+{
+  "name": "montage-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-Powered Gaming Montage Editor",
+  "scripts": {
+    "dev": "pnpm --filter @montage/desktop dev",
+    "build": "pnpm --filter @montage/desktop build",
+    "test": "pnpm --filter @montage/desktop test && pnpm test:backend",
+    "test:backend": "cd apps/backend && .venv/bin/pytest tests/ -v",
+    "lint": "pnpm --filter @montage/desktop lint",
+    "typecheck": "pnpm --filter @montage/desktop typecheck"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
