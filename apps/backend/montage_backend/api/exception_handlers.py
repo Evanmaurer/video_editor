@@ -17,6 +17,8 @@ async def montage_error_handler(_request: Request, exc: MontageError) -> JSONRes
         status = 404
     elif exc.code == "PROJECT_ALREADY_EXISTS":
         status = 409
+    elif exc.code == "PROCESSING_CANCELLED":
+        status = 409
     else:
         status = 400
     return JSONResponse(

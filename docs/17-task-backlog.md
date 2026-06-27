@@ -1,275 +1,247 @@
 # Task Backlog
 
 **Product:** MontageAI  
-**Version:** 1.0  
-**Date:** 2026-06-26
+**Version:** 1.1  
+**Date:** 2026-06-27 (revised milestone plan)
 
 Tasks are organized by milestone. Priority: P0 (must have), P1 (should have), P2 (nice to have).
 
+**Workflow:** Within Milestone 2, complete each sub-milestone (M2-001 → M2-006) fully before starting the next. At each milestone completion, update PROJECT_STATE.md and wait for approval.
+
 ---
 
-## Milestone 0: Design ✦
+## Milestone 0: Design ✓
 
 | ID | Task | Priority | Status |
 |----|------|----------|--------|
 | M0-001 | Write Product Requirements Document | P0 | Done |
 | M0-002 | Write Software Architecture Document | P0 | Done |
-| M0-003 | Define folder structure | P0 | Done |
-| M0-004 | Design database schema | P0 | Done |
-| M0-005 | Write frontend architecture | P0 | Done |
-| M0-006 | Write backend architecture | P0 | Done |
-| M0-007 | Design AI agents | P0 | Done |
-| M0-008 | Design timeline engine | P0 | Done |
-| M0-009 | Design rendering pipeline | P0 | Done |
-| M0-010 | Create UI wireframes | P0 | Done |
-| M0-011 | Create sequence diagrams | P0 | Done |
-| M0-012 | Design API | P0 | Done |
-| M0-013 | Document technology decisions | P0 | Done |
-| M0-014 | Write risk analysis | P0 | Done |
-| M0-015 | Create development roadmap | P0 | Done |
-| M0-016 | Break down milestones | P0 | Done |
-| M0-017 | Create task backlog | P0 | Done |
-| M0-018 | Write coding standards | P0 | Done |
-| M0-019 | Write testing strategy | P0 | Done |
-| M0-020 | Define definition of done | P0 | Done |
-| M0-021 | Create PROJECT_STATE.md | P0 | Done |
-| M0-022 | Architecture review and approval | P0 | Pending |
+| M0-003–M0-021 | Remaining design documents + PROJECT_STATE | P0 | Done |
+| M0-022 | Architecture review and approval | P0 | Done |
 
 ---
 
-## Milestone 1: Application Shell
+## Milestone 1: Application Shell ✓
 
-| ID | Task | Priority | Estimate |
-|----|------|----------|----------|
-| M1-001 | Initialize monorepo (pnpm workspaces, root config) | P0 | 2h |
-| M1-002 | Scaffold Electron app (electron-vite + React + TS) | P0 | 4h |
-| M1-003 | Configure TailwindCSS dark theme tokens | P0 | 2h |
-| M1-004 | Scaffold Python backend (FastAPI + Uvicorn) | P0 | 3h |
-| M1-005 | Implement backend spawn + health check in Electron main | P0 | 4h |
-| M1-006 | Implement auth token generation + middleware | P0 | 2h |
-| M1-007 | Create preload bridge (IPC API) | P0 | 3h |
-| M1-008 | Create API client (typed HTTP) | P0 | 3h |
-| M1-009 | Create WebSocket client | P0 | 2h |
-| M1-010 | Implement ProjectService (create/open/save/close) | P0 | 6h |
-| M1-011 | Implement project repository + SQLite setup | P0 | 4h |
-| M1-012 | Create Alembic migration for projects table | P0 | 2h |
-| M1-013 | Build Welcome screen UI | P0 | 4h |
-| M1-014 | Build New Project wizard (3 steps) | P0 | 6h |
-| M1-015 | Build panel layout shell (react-resizable-panels) | P0 | 4h |
-| M1-016 | Build menu bar (File, Edit, View, Help) | P0 | 3h |
-| M1-017 | Build status bar | P1 | 2h |
-| M1-018 | Build settings panel (basic) | P1 | 4h |
-| M1-019 | Scaffold shared-types package + JSON Schema | P0 | 4h |
-| M1-020 | Setup structured logging (structlog + frontend) | P0 | 3h |
-| M1-021 | Setup ESLint + Prettier + Ruff + mypy | P0 | 2h |
-| M1-022 | Unit tests: ProjectService | P0 | 4h |
-| M1-023 | Integration test: project create/open cycle | P0 | 3h |
-| M1-024 | Update PROJECT_STATE.md | P0 | 1h |
-
-**M1 Total Estimate:** ~75 hours (~2 weeks)
+All M1 tasks complete. See git tag `milestone-1`.
 
 ---
 
-## Milestone 2: Media Pipeline
+## Milestone 2: Media Processing Engine
+
+### M2-001 — Media Processing Engine
 
 | ID | Task | Priority | Estimate |
 |----|------|----------|----------|
-| M2-001 | Implement FFmpeg wrapper (probe, transcode, extract) | P0 | 8h |
-| M2-002 | Implement MediaService.import_files | P0 | 6h |
-| M2-003 | Implement proxy generator (720p H.264) | P0 | 4h |
-| M2-004 | Implement thumbnail generator | P0 | 3h |
-| M2-005 | Implement media repository (CRUD + queries) | P0 | 4h |
-| M2-006 | Create Alembic migration for media_items table | P0 | 2h |
-| M2-007 | Implement job queue (asyncio) | P0 | 8h |
-| M2-008 | Implement job handlers (proxy, thumbnail) | P0 | 4h |
-| M2-009 | Implement WebSocket event broadcasting | P0 | 4h |
-| M2-010 | Build MediaLibrary component (grid view) | P0 | 6h |
-| M2-011 | Build MediaLibrary list view | P1 | 3h |
-| M2-012 | Build ClipCard component | P0 | 3h |
-| M2-013 | Implement file import dialog (IPC + API) | P0 | 4h |
-| M2-014 | Build import progress UI | P0 | 3h |
-| M2-015 | Implement duplicate detection | P1 | 2h |
-| M2-016 | Implement media delete | P1 | 2h |
-| M2-017 | Unit tests: FFmpeg wrapper | P0 | 4h |
-| M2-018 | Unit tests: MediaService | P0 | 4h |
-| M2-019 | Integration test: import → proxy → thumbnail | P0 | 4h |
-| M2-020 | E2E test: import folder → see clips | P0 | 4h |
-| M2-021 | Update PROJECT_STATE.md | P0 | 1h |
+| M2.1-001 | Implement FFmpeg wrapper (probe, transcode, extract) | P0 | 8h |
+| M2.1-002 | Implement MediaService.import_files | P0 | 6h |
+| M2.1-003 | Implement proxy generator (720p H.264) | P0 | 4h |
+| M2.1-004 | Implement waveform generator | P0 | 4h |
+| M2.1-005 | Implement thumbnail generator | P0 | 3h |
+| M2.1-006 | Implement media repository (CRUD + queries) | P0 | 4h |
+| M2.1-007 | Alembic migrations for media_items table | P0 | 2h |
+| M2.1-008 | Implement job queue (asyncio) | P0 | 8h |
+| M2.1-009 | Implement job handlers (proxy, waveform, thumbnail) | P0 | 6h |
+| M2.1-010 | WebSocket event broadcasting for job progress | P0 | 4h |
+| M2.1-011 | Unit tests: FFmpeg wrapper + MediaService | P0 | 8h |
+| M2.1-012 | Integration test: import → proxy → waveform | P0 | 4h |
+| M2.1-013 | Update docs + PROJECT_STATE.md | P0 | 1h |
 
-**M2 Total Estimate:** ~85 hours (~2 weeks)
+### M2-002 — Media Library
+
+| ID | Task | Priority | Estimate |
+|----|------|----------|----------|
+| M2.2-001 | Build MediaLibrary grid view | P0 | 6h |
+| M2.2-002 | Build MediaLibrary list view | P1 | 3h |
+| M2.2-003 | Build ClipCard component | P0 | 3h |
+| M2.2-004 | File import dialog (IPC + API) + drag-drop | P0 | 4h |
+| M2.2-005 | Import progress UI | P0 | 3h |
+| M2.2-006 | Duplicate detection | P1 | 2h |
+| M2.2-007 | Media delete | P1 | 2h |
+| M2.2-008 | E2E/integration test: import folder → see clips | P0 | 4h |
+| M2.2-009 | Update docs + PROJECT_STATE.md | P0 | 1h |
+
+### M2-003 — Timeline Engine
+
+| ID | Task | Priority | Estimate |
+|----|------|----------|----------|
+| M2.3-001 | Define timeline JSON Schema | P0 | 4h |
+| M2.3-002 | Implement TimelineEngine (commands, undo/redo) | P0 | 16h |
+| M2.3-003 | Implement snap engine | P1 | 4h |
+| M2.3-004 | Implement TimelineService (backend) | P0 | 6h |
+| M2.3-005 | Build Timeline UI (multi-track, ruler, playhead) | P0 | 16h |
+| M2.3-006 | Clip drag-drop, trim, split, move | P0 | 12h |
+| M2.3-007 | Inspector panel (clip properties) | P0 | 6h |
+| M2.3-008 | Auto-save (debounced) | P0 | 3h |
+| M2.3-009 | Keyboard shortcuts | P1 | 4h |
+| M2.3-010 | Unit tests: TimelineEngine commands | P0 | 8h |
+| M2.3-011 | Update docs + PROJECT_STATE.md | P0 | 1h |
+
+### M2-004 — Playback Engine
+
+| ID | Task | Priority | Estimate |
+|----|------|----------|----------|
+| M2.4-001 | PreviewController + PreviewWindow | P0 | 8h |
+| M2.4-002 | Transport controls | P0 | 3h |
+| M2.4-003 | Proxy-based sequential playback | P0 | 8h |
+| M2.4-004 | Audio playback sync | P0 | 6h |
+| M2.4-005 | Scrubbing / seek | P1 | 4h |
+| M2.4-006 | Unit/integration tests | P0 | 4h |
+| M2.4-007 | Update docs + PROJECT_STATE.md | P0 | 1h |
+
+### M2-005 — Export Engine
+
+| ID | Task | Priority | Estimate |
+|----|------|----------|----------|
+| M2.5-001 | RenderGraphBuilder | P0 | 10h |
+| M2.5-002 | FFmpeg render pipeline + job handler | P0 | 8h |
+| M2.5-003 | Export presets (H.264 1080p60) | P0 | 2h |
+| M2.5-004 | Render progress parsing + WebSocket | P0 | 4h |
+| M2.5-005 | Render Queue UI | P0 | 6h |
+| M2.5-006 | Basic audio mixing | P1 | 6h |
+| M2.5-007 | Unit tests: RenderGraphBuilder | P0 | 6h |
+| M2.5-008 | Integration test: export 3-min montage | P0 | 4h |
+| M2.5-009 | Update docs + PROJECT_STATE.md | P0 | 1h |
+
+### M2-006 — AI Metadata Engine
+
+| ID | Task | Priority | Estimate |
+|----|------|----------|----------|
+| M2.6-001 | AI metadata schema (confidence, reasoning, tags) | P0 | 4h |
+| M2.6-002 | Metadata cache storage (SQLite) + repository | P0 | 6h |
+| M2.6-003 | API to read/write metadata on media items | P0 | 4h |
+| M2.6-004 | UI hooks to display metadata on clips | P1 | 4h |
+| M2.6-005 | Metadata invalidation on re-import | P0 | 2h |
+| M2.6-006 | Unit + integration tests | P0 | 4h |
+| M2.6-007 | Milestone 2 summary + PROJECT_STATE.md | P0 | 2h |
+
+**M2 total estimate:** ~200 hours (~5 weeks)
 
 ---
 
-## Milestone 3: Clip & Albion Analysis
+## Milestone 3: AI Analysis Pipeline
 
 | ID | Task | Priority | Estimate |
 |----|------|----------|----------|
-| M3-001 | Implement BaseAgent interface + AIEngine orchestrator | P0 | 6h |
-| M3-002 | Implement model registry (load/unload) | P0 | 4h |
-| M3-003 | Implement frame extractor (PyAV) | P0 | 4h |
-| M3-004 | Implement Clip Analyzer agent | P0 | 16h |
-| M3-005 | Implement scene detection (histogram + CLIP) | P0 | 8h |
-| M3-006 | Implement motion analysis (optical flow) | P0 | 6h |
-| M3-007 | Implement OCR integration (EasyOCR) | P0 | 4h |
-| M3-008 | Implement excitement scoring | P0 | 4h |
-| M3-009 | Implement Albion analyzer plugin scaffold | P0 | 4h |
-| M3-010 | Implement BombDetector | P0 | 8h |
-| M3-011 | Implement KillFeedDetector | P0 | 6h |
-| M3-012 | Implement EngagementDetector | P0 | 4h |
-| M3-013 | Implement WipeDetector | P0 | 4h |
-| M3-014 | Implement LootDetector | P1 | 4h |
-| M3-015 | Create Albion UI template config | P0 | 3h |
-| M3-016 | Implement analysis job handlers | P0 | 4h |
-| M3-017 | Implement analysis repositories | P0 | 4h |
-| M3-018 | Create Alembic migrations (clip_analysis, game_events) | P0 | 2h |
-| M3-019 | Build analysis progress overlay UI | P0 | 4h |
-| M3-020 | Update ClipCard with scores and event badges | P0 | 4h |
-| M3-021 | Build clip detail view | P0 | 6h |
-| M3-022 | Implement filter/sort by score and event type | P0 | 4h |
-| M3-023 | Build AI suggestion card component | P1 | 4h |
-| M3-024 | Create validation test set (30+ labeled clips) | P0 | 8h |
-| M3-025 | Unit tests: Clip Analyzer | P0 | 6h |
-| M3-026 | Unit tests: Albion detectors | P0 | 6h |
-| M3-027 | Integration test: analyze clip → store results | P0 | 4h |
-| M3-028 | Update PROJECT_STATE.md | P0 | 1h |
+| M3-001 | BaseAgent interface + orchestrator | P0 | 6h |
+| M3-002 | Model registry (load/unload) | P0 | 4h |
+| M3-003 | Frame extractor (PyAV) | P0 | 4h |
+| M3-004 | Clip analysis agent | P0 | 16h |
+| M3-005 | Scene understanding | P0 | 8h |
+| M3-006 | Motion analysis | P0 | 6h |
+| M3-007 | OCR integration (EasyOCR) | P0 | 4h |
+| M3-008 | Object detection | P0 | 8h |
+| M3-009 | Audio analysis | P0 | 6h |
+| M3-010 | CLIP embeddings + semantic indexing | P0 | 10h |
+| M3-011 | Analysis job handlers + progress UI | P0 | 6h |
+| M3-012 | Clip scores/tags in media library | P0 | 4h |
+| M3-013 | Validation test set + metrics | P0 | 8h |
+| M3-014 | Unit + integration tests | P0 | 10h |
+| M3-015 | Milestone summary + PROJECT_STATE.md | P0 | 2h |
 
-**M3 Total Estimate:** ~140 hours (~3.5 weeks)
+**M3 total estimate:** ~102 hours
 
 ---
 
-## Milestone 4: Music & Style Analysis
+## Milestone 4: AI Montage Generation
 
 | ID | Task | Priority | Estimate |
 |----|------|----------|----------|
-| M4-001 | Implement Music Analyzer agent | P0 | 10h |
-| M4-002 | Implement Style Analyzer agent | P0 | 10h |
-| M4-003 | Implement music/style repositories | P0 | 4h |
-| M4-004 | Create Alembic migrations (music_analysis, style_profiles) | P0 | 2h |
-| M4-005 | Build music analysis display UI | P0 | 4h |
-| M4-006 | Build beat markers on timeline ruler | P1 | 4h |
-| M4-007 | Build style profile display | P1 | 3h |
-| M4-008 | Unit tests: Music Analyzer | P0 | 4h |
-| M4-009 | Unit tests: Style Analyzer | P0 | 4h |
-| M4-010 | Update PROJECT_STATE.md | P0 | 1h |
+| M4-001 | Music Analyzer (BPM, beats, drops) | P0 | 10h |
+| M4-002 | Style Analyzer (reference montage profiling) | P0 | 10h |
+| M4-003 | Highlight selection algorithm | P0 | 8h |
+| M4-004 | Beat-sync placement + pacing engine | P0 | 10h |
+| M4-005 | Transition + effects selection | P0 | 8h |
+| M4-006 | Camera shake detection | P1 | 4h |
+| M4-007 | Timeline Planner agent | P0 | 16h |
+| M4-008 | "Generate Timeline" API + UI workflow | P0 | 8h |
+| M4-009 | AI Suggestions panel (accept/reject) | P0 | 6h |
+| M4-010 | Integration test: analyze → generate | P0 | 4h |
+| M4-011 | Milestone summary + PROJECT_STATE.md | P0 | 2h |
 
-**M4 Total Estimate:** ~46 hours (~1 week)
+**M4 total estimate:** ~86 hours
 
 ---
 
-## Milestone 5: Timeline Engine
+## Milestone 5: Albion Online Intelligence
 
 | ID | Task | Priority | Estimate |
 |----|------|----------|----------|
-| M5-001 | Define timeline JSON Schema | P0 | 4h |
-| M5-002 | Implement TimelineEngine (core) | P0 | 12h |
-| M5-003 | Implement command pattern (all commands) | P0 | 10h |
-| M5-004 | Implement undo/redo stack | P0 | 4h |
-| M5-005 | Implement snap engine | P1 | 4h |
-| M5-006 | Implement timeline validation | P0 | 3h |
-| M5-007 | Implement TimelineService (backend) | P0 | 6h |
-| M5-008 | Build Timeline component (multi-track) | P0 | 12h |
-| M5-009 | Build Track + ClipBlock components | P0 | 8h |
-| M5-010 | Build Playhead + Ruler components | P0 | 4h |
-| M5-011 | Implement clip drag-drop | P0 | 6h |
-| M5-012 | Implement trim handles | P0 | 6h |
-| M5-013 | Implement split at playhead | P0 | 3h |
-| M5-014 | Build PreviewController + PreviewWindow | P0 | 8h |
-| M5-015 | Build TransportControls | P0 | 3h |
-| M5-016 | Build Inspector panel (clip properties) | P0 | 6h |
-| M5-017 | Implement auto-save (debounced) | P0 | 3h |
-| M5-018 | Implement keyboard shortcuts | P1 | 4h |
-| M5-019 | Unit tests: TimelineEngine commands | P0 | 8h |
-| M5-020 | Unit tests: snap engine | P1 | 3h |
-| M5-021 | Integration test: create/edit/save timeline | P0 | 4h |
-| M5-022 | Update PROJECT_STATE.md | P0 | 1h |
+| M5-001 | Albion analyzer plugin scaffold | P0 | 4h |
+| M5-002 | Albion-specific OCR | P0 | 6h |
+| M5-003 | BombDetector | P0 | 8h |
+| M5-004 | KillFeedDetector | P0 | 6h |
+| M5-005 | Cooldown recognition | P0 | 6h |
+| M5-006 | Party status detection | P0 | 4h |
+| M5-007 | Player recognition | P1 | 6h |
+| M5-008 | Battle timeline extraction | P0 | 8h |
+| M5-009 | Guild metadata extraction | P1 | 4h |
+| M5-010 | Engagement scoring | P0 | 4h |
+| M5-011 | UI template system + calibration wizard | P0 | 8h |
+| M5-012 | Event badges + filters in media library | P0 | 4h |
+| M5-013 | Validation test set (30+ labeled clips) | P0 | 8h |
+| M5-014 | Unit + integration tests | P0 | 8h |
+| M5-015 | Milestone summary + PROJECT_STATE.md | P0 | 2h |
 
-**M5 Total Estimate:** ~120 hours (~3 weeks)
+**M5 total estimate:** ~86 hours
 
 ---
 
-## Milestone 6: AI Timeline Generation
+## Milestone 6: AI Assistant
 
 | ID | Task | Priority | Estimate |
 |----|------|----------|----------|
-| M6-001 | Implement Timeline Planner agent | P0 | 16h |
-| M6-002 | Implement clip selection algorithm | P0 | 6h |
-| M6-003 | Implement beat-sync placement | P0 | 6h |
-| M6-004 | Implement style profile application | P0 | 4h |
-| M6-005 | Implement "Generate Timeline" API endpoint | P0 | 4h |
-| M6-006 | Build "Generate Timeline" UI workflow | P0 | 4h |
-| M6-007 | Build AI Suggestions panel | P0 | 6h |
-| M6-008 | Implement accept/reject suggestion flow | P0 | 6h |
-| M6-009 | Display AI metadata on timeline clips | P0 | 3h |
-| M6-010 | Unit tests: Timeline Planner | P0 | 6h |
-| M6-011 | Integration test: analyze → generate → verify | P0 | 4h |
-| M6-012 | Update PROJECT_STATE.md | P0 | 1h |
+| M6-001 | Chat panel UI | P0 | 6h |
+| M6-002 | Chat Assistant agent + LLM integration | P0 | 10h |
+| M6-003 | Project context injection | P0 | 4h |
+| M6-004 | NL command parser | P0 | 8h |
+| M6-005 | Editing Agent (timeline modifications) | P0 | 8h |
+| M6-006 | Suggestion flow with confidence/reasoning | P0 | 4h |
+| M6-007 | Generate montage from NL instructions | P0 | 10h |
+| M6-008 | Unit + integration tests | P0 | 6h |
+| M6-009 | E2E test: chat-driven edit | P0 | 4h |
+| M6-010 | Milestone summary + PROJECT_STATE.md | P0 | 2h |
 
-**M6 Total Estimate:** ~66 hours (~1.5 weeks)
+**M6 total estimate:** ~62 hours
 
 ---
 
-## Milestone 7: Export & AI Chat
+## Milestone 7: Polish & Production
 
 | ID | Task | Priority | Estimate |
 |----|------|----------|----------|
-| M7-001 | Implement RenderGraphBuilder | P0 | 10h |
-| M7-002 | Implement effect/transition compilers | P0 | 8h |
-| M7-003 | Implement RenderService + job handler | P0 | 6h |
-| M7-004 | Implement render progress parsing | P0 | 3h |
-| M7-005 | Implement export presets | P0 | 2h |
-| M7-006 | Build Render Queue UI | P0 | 6h |
-| M7-007 | Implement Chat Assistant agent | P1 | 10h |
-| M7-008 | Implement rule-based NL parser | P1 | 8h |
-| M7-009 | Implement Editing Agent | P1 | 6h |
-| M7-010 | Build Chat Panel UI | P1 | 6h |
-| M7-011 | Implement Audio Agent (basic mixing) | P1 | 8h |
-| M7-012 | Unit tests: RenderGraphBuilder | P0 | 6h |
-| M7-013 | Unit tests: NL parser | P1 | 4h |
-| M7-014 | E2E test: full workflow | P0 | 8h |
-| M7-015 | Update PROJECT_STATE.md | P0 | 1h |
+| M7-001 | Performance profiling + optimization | P0 | 12h |
+| M7-002 | Error handling polish | P0 | 8h |
+| M7-003 | Complete E2E test suite | P0 | 12h |
+| M7-004 | electron-builder (macOS + Windows) | P0 | 8h |
+| M7-005 | PyInstaller backend bundling | P0 | 6h |
+| M7-006 | Auto-updater | P1 | 6h |
+| M7-007 | Crash reporting | P0 | 4h |
+| M7-008 | User documentation | P0 | 8h |
+| M7-009 | Beta program + feedback | P0 | 8h |
+| M7-010 | Bug fixes from beta | P0 | 20h |
+| M7-011 | v1.0 release + tag | P0 | 4h |
+| M7-012 | Milestone summary + PROJECT_STATE.md | P0 | 2h |
 
-**M7 Total Estimate:** ~92 hours (~2.5 weeks)
-
----
-
-## Milestone 8: Beta & Release
-
-| ID | Task | Priority | Estimate |
-|----|------|----------|----------|
-| M8-001 | Implement Thumbnail Agent | P2 | 8h |
-| M8-002 | Performance profiling + optimization | P0 | 12h |
-| M8-003 | Error handling polish (all modules) | P0 | 8h |
-| M8-004 | Complete E2E test suite | P0 | 12h |
-| M8-005 | Setup electron-builder (macOS + Windows) | P0 | 8h |
-| M8-006 | PyInstaller backend bundling | P0 | 6h |
-| M8-007 | Model download UI | P1 | 4h |
-| M8-008 | Beta distribution setup | P0 | 4h |
-| M8-009 | User documentation | P1 | 8h |
-| M8-010 | Beta feedback collection | P0 | 4h |
-| M8-011 | Bug fixes from beta | P0 | 20h |
-| M8-012 | v1.0 release | P0 | 4h |
-| M8-013 | Update PROJECT_STATE.md | P0 | 1h |
-
-**M8 Total Estimate:** ~99 hours (~2.5 weeks)
+**M7 total estimate:** ~98 hours
 
 ---
 
 ## Backlog Summary
 
-| Milestone | Tasks | Estimated Hours |
-|-----------|-------|-----------------|
-| M0 | 22 | 40 (design) |
-| M1 | 24 | 75 |
-| M2 | 21 | 85 |
-| M3 | 28 | 140 |
-| M4 | 10 | 46 |
-| M5 | 22 | 120 |
-| M6 | 12 | 66 |
-| M7 | 15 | 92 |
-| M8 | 13 | 99 |
-| **Total** | **167** | **~763 hours** |
+| Milestone | Status | Estimated Hours |
+|-----------|--------|-----------------|
+| M0 | Complete | 40 |
+| M1 | Complete | 75 |
+| M2 (6 sub-milestones) | Not started | ~200 |
+| M3 | Not started | ~102 |
+| M4 | Not started | ~86 |
+| M5 | Not started | ~86 |
+| M6 | Not started | ~62 |
+| M7 | Not started | ~98 |
+| **Remaining** | | **~634 hours** |
 
-**Estimated calendar time:** 33-40 weeks (1-2 engineers)
+**Estimated calendar time (remaining):** 30–38 weeks (1–2 engineers)
 
 ---
 
@@ -280,10 +252,6 @@ Tasks are organized by milestone. Priority: P0 (must have), P1 (should have), P2
 | ICE-001 | Second game plugin framework | P2 |
 | ICE-002 | Full-res preview via frame server | P2 |
 | ICE-003 | Hardware render acceleration | P2 |
-| ICE-004 | Cloud LLM integration (OpenAI/Anthropic) | P2 |
-| ICE-005 | Batch project processing | P2 |
-| ICE-006 | Template system for montage styles | P2 |
-| ICE-007 | Auto-updater | P2 |
-| ICE-008 | EDL/XML export | P2 |
-| ICE-009 | Motion graphics engine | P3 |
-| ICE-010 | Cloud collaboration | P3 |
+| ICE-004 | Batch project processing | P2 |
+| ICE-005 | Motion graphics engine | P3 |
+| ICE-006 | Cloud collaboration | P3 |

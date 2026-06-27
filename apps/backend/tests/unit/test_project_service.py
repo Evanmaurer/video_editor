@@ -52,6 +52,21 @@ async def test_save_project_updates_timestamp(test_app_engine, tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_get_project_by_id(test_app_engine, tmp_path):
+    session_factory = async_sessionmaker(test_app_engine, expire_on_commit=False, class_=AsyncSession)
+    service = ProjectService(session_factory)
+
+    project_root = tmp_path / "LookupTest"
+    created = await service.create_project(
+        CreateProjectRequest(name="Lookup", root_path=str(project_root)),
+    )
+
+    loaded = await service.get_project(created.id)
+    assert loaded.id == created.id
+    assert loaded.root_path == str(project_root.resolve())
+
+
+@pytest.mark.asyncio
 async def test_recent_projects_list(test_app_engine, tmp_path):
     session_factory = async_sessionmaker(test_app_engine, expire_on_commit=False, class_=AsyncSession)
     service = ProjectService(session_factory)

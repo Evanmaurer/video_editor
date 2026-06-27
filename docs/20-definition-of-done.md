@@ -58,6 +58,19 @@ A milestone is **done** when ALL of the following are true:
 - [ ] PROJECT_STATE.md updated with completed work, known bugs, next priorities
 - [ ] Stakeholder approval to proceed to next milestone
 
+### Sub-milestone Definition of Done (Milestone 2 only)
+
+A sub-milestone (M2-001 through M2-006) is **done** when:
+
+- [ ] All P0 deliverables for the sub-milestone meet Feature Definition of Done
+- [ ] Sub-milestone exit criteria (from [16-milestone-breakdown.md](./16-milestone-breakdown.md)) met
+- [ ] Tests written and passing for new code
+- [ ] Documentation updated
+- [ ] Changes committed
+- [ ] Approval to proceed to the next sub-milestone
+
+Milestone 2 is complete only when M2-001 through M2-006 are all done and stakeholder approval is received for Milestone 3.
+
 ---
 
 ## 3. Release Definition of Done (v1.0)

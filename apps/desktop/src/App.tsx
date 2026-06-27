@@ -10,6 +10,12 @@ import { getApiClient, initApiClient } from "@/services/api-client";
 import { wsClient } from "@/services/websocket-client";
 import { useProjectStore, useUIStore } from "@/stores/project-store";
 
+const STARTUP_TIMEOUT_MS = 30_000;
+
+function getMontageAPI(): Window["montageAPI"] | null {
+  return typeof window !== "undefined" && window.montageAPI ? window.montageAPI : null;
+}
+
 export function App() {
   const view = useProjectStore((s) => s.view);
   const project = useProjectStore((s) => s.project);
@@ -23,39 +29,83 @@ export function App() {
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        setErrorDetail(
+          "Startup timed out. Ensure the backend is running on http://127.0.0.1:8000 with the current code.",
+        );
+        setError("Startup timed out");
+      }
+    }, STARTUP_TIMEOUT_MS);
+
     void (async () => {
       try {
+        const montageAPI = getMontageAPI();
+        if (!montageAPI) {
+          throw new Error(
+            "Montage desktop API is unavailable. Launch with pnpm dev from the repo root, not in a browser.",
+          );
+        }
+
         await initApiClient();
         const api = getApiClient();
         const health = await api.getHealth();
+        if (cancelled) {
+          return;
+        }
         setHealth(health);
         const recents = await api.getRecentProjects();
+        if (cancelled) {
+          return;
+        }
         setRecentProjects(recents);
-        await wsClient.connect();
         setBackendReady(true);
+        void wsClient.connect().catch(() => {
+          // WebSocket is optional during M2; API polling covers media progress.
+        });
       } catch (err) {
+        if (cancelled) {
+          return;
+        }
         const fetchDetail =
           err instanceof Error
             ? [err.message, err.stack].filter(Boolean).join("\n")
             : String(err);
-        const status = await window.montageAPI.getBackendStatus();
-        const detail = fetchDetail || status.errorDetail || status.error;
-        setErrorDetail(detail ?? null);
+        let detail = fetchDetail;
+        try {
+          const montageAPI = getMontageAPI();
+          if (montageAPI) {
+            const status = await montageAPI.getBackendStatus();
+            detail = fetchDetail || status.errorDetail || status.error || detail;
+          }
+        } catch {
+          // keep fetchDetail
+        }
+        setErrorDetail(detail || null);
         setError(
           err instanceof Error
             ? err.message.split("\n")[0]!
-            : (status.error ?? "Failed to connect to backend"),
+            : "Failed to connect to backend",
         );
+      } finally {
+        clearTimeout(timeout);
       }
     })();
 
-    return () => wsClient.disconnect();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      wsClient.disconnect();
+    };
   }, [setHealth, setRecentProjects, setError]);
 
   if (!backendReady && !error) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <p className="text-muted">Starting MontageAI...</p>
+      <div className="h-full flex flex-col items-center justify-center gap-3 bg-primary">
+        <p className="text-[#e8e8e8] text-lg font-medium">Starting MontageAI…</p>
+        <p className="text-muted text-sm">Connecting to backend at http://127.0.0.1:8000</p>
       </div>
     );
   }

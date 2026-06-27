@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
 from montage_backend import __version__
-from montage_backend.api.deps import get_project_service, get_settings_service
+from montage_backend.api.deps import get_media_service, get_project_service, get_settings_service
+from montage_backend.media.ffmpeg_tools import detect_ffmpeg
 from montage_backend.api.exception_handlers import (
     montage_error_handler,
     sqlalchemy_error_handler,
@@ -80,11 +81,19 @@ async def health() -> dict[str, object]:
     app_settings = await settings_service.get_settings()
     gpu = project_service.get_gpu_info(app_settings.gpu_enabled)
     ai_status = await llm_service.get_status()
+    media_service = get_media_service()
+    ffmpeg = detect_ffmpeg(
+        media_service.processor.runner.ffmpeg_bin,
+        media_service.processor.runner.ffprobe_bin,
+    )
     return {
         "status": "ok",
         "version": __version__,
+        "features": ["media_library"],
         "models_loaded": False,
-        "queue_depth": 0,
+        "queue_depth": media_service.queue.active_count,
+        "ffmpeg_available": ffmpeg.available,
+        "ffmpeg_note": ffmpeg.message,
         "gpu_available": gpu.available,
         "gpu_name": gpu.name,
         "cpu_only_mode": not gpu.available,

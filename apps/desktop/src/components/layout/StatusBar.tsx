@@ -13,6 +13,11 @@ export function StatusBar() {
           <span>
             GPU: {health.gpu_available ? (health.gpu_name ?? "Available") : "CPU only"}
           </span>
+          {health.ffmpeg_available === false && (
+            <span className="text-[#e74c3c] truncate" title={health.ffmpeg_note ?? undefined}>
+              FFmpeg not installed — run: brew install ffmpeg
+            </span>
+          )}
           {health.performance_note && (
             <span className="text-[#f39c12] truncate" title={health.performance_note}>
               {health.performance_note}

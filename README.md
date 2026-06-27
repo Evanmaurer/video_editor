@@ -6,7 +6,7 @@ MontageAI is a professional desktop application for creating AI-assisted gaming 
 
 ## Status
 
-**Milestone 1: Application Shell** — Complete (tag: `milestone-1`). Milestone 2 (Media Pipeline) is next.
+**Milestone 1: Application Shell** — Complete (tag: `milestone-1`). **Milestone 2: Media Processing Engine** is next (starting with sub-milestone M2-001).
 
 See [Milestone 1 Summary](docs/milestone-1-summary.md) and [PROJECT_STATE.md](PROJECT_STATE.md) for details.
 

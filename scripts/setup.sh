@@ -39,4 +39,9 @@ echo "==> Verifying Python backend import..."
 cd "$ROOT"
 
 echo "==> Setup complete."
+if ! command -v ffmpeg &>/dev/null || ! command -v ffprobe &>/dev/null; then
+  echo ""
+  echo "NOTE: FFmpeg is required for media import (proxy, thumbnail, waveform)."
+  echo "Install with: brew install ffmpeg"
+fi
 echo "Run: pnpm dev"

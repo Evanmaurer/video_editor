@@ -55,6 +55,8 @@ export interface HealthResponse {
   gpu_name: string | null;
   cpu_only_mode: boolean;
   performance_note: string | null;
+  ffmpeg_available?: boolean;
+  ffmpeg_note?: string | null;
 }
 
 export interface BackendReadyEvent {
@@ -107,8 +109,173 @@ export interface AiFeatureStatus {
 
 export type ViewState = "welcome" | "editor" | "settings";
 
+export type MediaType = "video" | "audio" | "image";
+export type MediaRole = "clip" | "music" | "reference" | "voice" | "other";
+export type ImportStatus =
+  | "pending"
+  | "processing"
+  | "ready"
+  | "error"
+  | "cancelled"
+  | "duplicate";
+export type StorageMode = "copy" | "reference";
+export type ProcessingStatus = "pending" | "processing" | "ready" | "error";
+export type MediaSortField = "name" | "duration" | "created_at" | "favorite";
+export type MediaSortOrder = "asc" | "desc";
+
+export interface MediaItem {
+  id: string;
+  project_id: string;
+  file_path: string;
+  file_name: string;
+  source_path: string | null;
+  media_type: MediaType;
+  role: MediaRole;
+  storage_mode: StorageMode;
+  sha256_hash: string | null;
+  duration_ms: number | null;
+  width: number | null;
+  height: number | null;
+  frame_rate: number | null;
+  codec: string | null;
+  frame_count: number | null;
+  audio_sample_rate: number | null;
+  bitrate: number | null;
+  file_size_bytes: number | null;
+  proxy_path: string | null;
+  thumbnail_path: string | null;
+  waveform_path: string | null;
+  proxy_status: ProcessingStatus;
+  waveform_status: ProcessingStatus;
+  scene_status: ProcessingStatus;
+  tags: string[];
+  is_favorite: boolean;
+  import_status: ImportStatus;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ImportMediaRequest {
+  paths: string[];
+  role?: MediaRole;
+  storage_mode?: StorageMode;
+}
+
+export interface ImportFolderRequest {
+  path: string;
+  role?: MediaRole;
+  storage_mode?: StorageMode;
+}
+
+export interface ImportMediaResult {
+  media_id: string;
+  file_name: string;
+  status: ImportStatus;
+  error?: string | null;
+  sha256_hash?: string | null;
+}
+
+export interface ImportMediaResponse {
+  imported: ImportMediaResult[];
+  skipped: string[];
+  duplicates: ImportMediaResult[];
+}
+
+export interface MediaListParams {
+  search?: string;
+  sort_by?: MediaSortField;
+  sort_order?: MediaSortOrder;
+  tags?: string[];
+  favorites_only?: boolean;
+}
+
+export interface UpdateMediaRequest {
+  tags?: string[];
+  is_favorite?: boolean;
+}
+
 export type WSEvent =
   | { type: "job.progress"; job_id: string; progress: number; message: string }
   | { type: "job.complete"; job_id: string }
   | { type: "job.failed"; job_id: string; error: string }
   | { type: "backend.status"; status: string };
+
+// --- Timeline (M2-003) ---
+
+export type TrackType = "video" | "audio" | "overlay" | "subtitle";
+
+export interface TimelineSettings {
+  width: number;
+  height: number;
+  frame_rate: number;
+  sample_rate: number;
+}
+
+export interface TimelineClip {
+  id: string;
+  media_item_id: string;
+  track_id: string;
+  start_ms: number;
+  end_ms: number;
+  source_in_ms: number;
+  source_out_ms: number;
+  speed: number;
+  opacity: number;
+  name?: string;
+}
+
+export interface TimelineTrack {
+  id: string;
+  type: TrackType;
+  name: string;
+  index: number;
+  muted: boolean;
+  locked: boolean;
+  visible: boolean;
+  volume: number;
+  clips: TimelineClip[];
+}
+
+export interface TimelineMarker {
+  id: string;
+  time_ms: number;
+  label: string;
+  color: string;
+  type: "user" | "beat" | "drop" | "event";
+}
+
+export interface TimelineDocument {
+  id: string;
+  project_id: string;
+  name: string;
+  version: number;
+  settings: TimelineSettings;
+  duration_ms: number;
+  tracks: TimelineTrack[];
+  markers: TimelineMarker[];
+  beat_markers: TimelineMarker[];
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TimelineSummary {
+  id: string;
+  project_id: string;
+  name: string;
+  duration_ms: number;
+  is_active: boolean;
+  version: number;
+  updated_at: string;
+}
+
+export interface SaveTimelineResponse {
+  id: string;
+  version: number;
+  updated_at: string;
+}
+
+export interface CreateTimelineRequest {
+  name?: string;
+}

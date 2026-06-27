@@ -94,6 +94,15 @@ Then use **New Project** in the welcome screen. Project folder and `project.db` 
 
 ## Next milestone
 
-**Milestone 2: Media Pipeline** — FFmpeg wrapper, media import, proxy/thumbnail generation, media library UI with real data, background job queue.
+**Milestone 2: Media Processing Engine** — six sequential sub-milestones:
 
-See [16-milestone-breakdown.md](./16-milestone-breakdown.md) and [PROJECT_STATE.md](../PROJECT_STATE.md).
+| Sub-milestone | Focus |
+|---------------|-------|
+| M2-001 | Media Processing Engine (FFmpeg, import, proxy, waveform) |
+| M2-002 | Media Library |
+| M2-003 | Timeline Engine |
+| M2-004 | Playback Engine |
+| M2-005 | Export Engine |
+| M2-006 | AI Metadata Engine |
+
+Then M3 (AI Analysis Pipeline) through M7 (Polish & Production). See [16-milestone-breakdown.md](./16-milestone-breakdown.md) and [PROJECT_STATE.md](../PROJECT_STATE.md).

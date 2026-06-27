@@ -1,8 +1,34 @@
 # Milestone Breakdown
 
 **Product:** MontageAI  
-**Version:** 1.0  
-**Date:** 2026-06-26
+**Version:** 1.1  
+**Date:** 2026-06-27 (revised milestone plan)
+
+---
+
+## Milestone Workflow
+
+### Sub-milestone rules (Milestone 2)
+
+Milestone 2 is implemented as six sequential sub-milestones. **Do not begin the next sub-milestone until the current one is complete, tested, documented, and committed.**
+
+| Sub-milestone | Name |
+|---------------|------|
+| M2-001 | Media Processing Engine |
+| M2-002 | Media Library |
+| M2-003 | Timeline Engine |
+| M2-004 | Playback Engine |
+| M2-005 | Export Engine |
+| M2-006 | AI Metadata Engine |
+
+### Milestone completion rules (all milestones)
+
+At the completion of each milestone (M2–M7):
+
+1. Stop implementation work
+2. Summarize work completed
+3. Update `PROJECT_STATE.md`
+4. **Wait for stakeholder approval** before proceeding to the next milestone
 
 ---
 
@@ -18,229 +44,284 @@
 
 **Duration:** 3 weeks  
 **Goal:** Electron app launches with professional dark UI; Python backend connects; project CRUD works.  
-**Status:** Complete (2026-06-27)
-
-### Features
-| Feature | Priority |
-|---------|----------|
-| Electron app scaffold (electron-vite) | P0 |
-| Python backend scaffold (FastAPI) | P0 |
-| Backend spawn + health check | P0 |
-| Auth token communication | P0 |
-| Welcome screen (new/open project) | P0 |
-| Project create/open/save/close | P0 |
-| Panel layout shell (empty panels) | P0 |
-| Menu bar (File, Edit, View, Help) | P0 |
-| Settings panel (basic) | P1 |
-| Structured logging (both sides) | P0 |
-| Shared types package scaffold | P0 |
+**Status:** Complete (2026-06-27, tag `milestone-1`)
 
 ### Exit Criteria
 - [x] App launches on macOS in < 5s
 - [x] Backend health check passes
 - [x] Create project → folder structure created → reopen project works
 - [x] All panels render (empty state)
-- [x] Unit tests for project service
+- [x] Unit + integration tests for project service and API
 - [x] PROJECT_STATE.md updated
 
 ---
 
-## Milestone 2: Media Pipeline
+## Milestone 2: Media Processing Engine
 
-**Duration:** 3-5 weeks  
-**Goal:** Import media, generate proxies/thumbnails, display in media library.
+**Duration:** 8–12 weeks (six sub-milestones)  
+**Goal:** Full media processing backend, library UI, timeline, playback, export, and AI metadata cache — the core editing engine before AI analysis.
 
-### Features
-| Feature | Priority |
-|---------|----------|
-| File import (drag-drop + dialog) | P0 |
-| FFprobe metadata extraction | P0 |
+Milestone 2 is **not** complete until all six sub-milestones (M2-001 through M2-006) are done.
+
+---
+
+### M2-001 — Media Processing Engine
+
+**Goal:** Backend media processing infrastructure.
+
+| Deliverable | Priority |
+|-------------|----------|
+| FFmpeg wrapper (probe, transcode, extract) | P0 |
+| Media import (files/folders) | P0 |
+| Metadata extraction (FFprobe) | P0 |
 | Proxy generation (720p H.264) | P0 |
+| Waveform generation | P0 |
 | Thumbnail generation | P0 |
-| Media library grid view | P0 |
-| Media library list view | P0 |
-| Import progress UI | P0 |
 | Background job queue | P0 |
 | WebSocket progress events | P0 |
+| SQLite media repository | P0 |
+| Alembic migrations for media tables | P0 |
+
+**Exit criteria:**
+- Import 100 clips; metadata extracted in < 60s
+- Proxies and waveforms generated in background with progress
+- Unit + integration tests for FFmpeg wrapper and MediaService
+- Documented, committed; approval to proceed to M2-002
+
+---
+
+### M2-002 — Media Library
+
+**Goal:** Frontend media library with real imported data.
+
+| Deliverable | Priority |
+|-------------|----------|
+| Media library grid view | P0 |
+| Media library list view | P1 |
+| ClipCard with metadata display | P0 |
+| File import dialog (drag-drop + IPC + API) | P0 |
+| Import progress UI | P0 |
 | Duplicate file detection | P1 |
 | Media item delete | P1 |
-| SQLite media repository | P0 |
 
-### Exit Criteria
-- Import 100 clips in < 60s (metadata + queue)
-- Proxies generated in background with progress
-- Media library displays thumbnails and metadata
-- E2E test: import folder → see clips in library
-- PROJECT_STATE.md updated
+**Exit criteria:**
+- Import folder → clips visible in library with thumbnails and metadata
+- E2E or integration test: import → see clips in library
+- Documented, committed; approval to proceed to M2-003
 
 ---
 
-## Milestone 3: Clip & Albion Analysis
+### M2-003 — Timeline Engine
 
-**Duration:** 4-5 weeks  
-**Goal:** AI analyzes clips; Albion events detected; clips ranked with scores.
+**Goal:** Multi-track timeline document, editing commands, and UI.
 
-### Features
-| Feature | Priority |
-|---------|----------|
-| Clip Analyzer agent | P0 |
-| Albion Event Analyzer agent | P0 |
-| Analysis job handlers | P0 |
-| Clip scores in media library | P0 |
-| Event badges on clip cards | P0 |
-| Filter by event type | P0 |
-| Sort by score | P0 |
-| Analysis progress overlay | P0 |
-| Clip detail view with analysis | P0 |
-| AI suggestion card UI (display) | P1 |
-| Analysis validation test set | P0 |
-
-### Exit Criteria
-- 100 clips analyzed in < 50 min (GPU)
-- Bomb detection ≥ 70% precision on validation set
-- Clips display excitement, motion, rank scores
-- Events shown with confidence on clip cards
-- Unit + integration tests for both agents
-- PROJECT_STATE.md updated
-
----
-
-## Milestone 4: Music & Style Analysis
-
-**Duration:** 2-3 weeks  
-**Goal:** Music analyzed for beats/drops; style learned from references.
-
-### Features
-| Feature | Priority |
-|---------|----------|
-| Music import and registration | P0 |
-| Reference montage import | P0 |
-| Music Analyzer agent | P0 |
-| Style Analyzer agent | P0 |
-| BPM/beat display in UI | P0 |
-| Beat markers on timeline ruler | P1 |
-| Energy curve visualization | P2 |
-| Style profile display | P1 |
-
-### Exit Criteria
-- BPM detection within ±2 BPM on 20 test tracks
-- Beat map generated and stored
-- Style profile extracted from reference montage
-- Beat markers visible on timeline ruler
-- Unit tests for music analyzer
-- PROJECT_STATE.md updated
-
----
-
-## Milestone 5: Timeline Engine
-
-**Duration:** 4-5 weeks  
-**Goal:** Full multi-track timeline with editing, preview, and undo/redo.
-
-### Features
-| Feature | Priority |
-|---------|----------|
-| Timeline document schema + validation | P0 |
+| Deliverable | Priority |
+|-------------|----------|
+| Timeline JSON schema + validation | P0 |
 | Timeline Engine (commands, undo/redo) | P0 |
 | Multi-track timeline UI | P0 |
 | Clip drag-drop onto timeline | P0 |
 | Trim, split, move clips | P0 |
 | Playhead + ruler | P0 |
-| Preview playback (proxy) | P0 |
-| Transport controls | P0 |
-| Snap to beats | P1 |
+| Snap to beats (when beat data available) | P1 |
 | Auto-save (debounced) | P0 |
-| Keyboard shortcuts | P1 |
 | Inspector panel (clip properties) | P0 |
+| Keyboard shortcuts | P1 |
 
-### Exit Criteria
+**Exit criteria:**
 - Manual timeline editing with 50+ clips
-- Undo/redo works for all operations (100+ stack)
-- Preview plays proxy clips in sequence
-- Snap to beat markers when enabled
+- Undo/redo for all operations
 - Timeline persists across app restart
 - Unit tests for Timeline Engine commands
-- PROJECT_STATE.md updated
+- Documented, committed; approval to proceed to M2-004
 
 ---
 
-## Milestone 6: AI Timeline Generation
+### M2-004 — Playback Engine
 
-**Duration:** 2-3 weeks  
-**Goal:** AI generates editable timeline from analyzed clips + music + style.
+**Goal:** Preview playback of timeline using proxy media.
 
-### Features
-| Feature | Priority |
-|---------|----------|
-| Timeline Planner agent | P0 |
-| "Generate Timeline" button + workflow | P0 |
-| AI-placed clips with metadata | P0 |
-| AI Suggestions panel (accept/reject) | P0 |
-| Suggestion preview | P1 |
-| Timeline generation progress | P0 |
-| Placement reasoning display | P0 |
+| Deliverable | Priority |
+|-------------|----------|
+| PreviewController + PreviewWindow | P0 |
+| Transport controls (play/pause/seek) | P0 |
+| Proxy-based sequential playback | P0 |
+| Audio playback sync | P0 |
+| Scrubbing and frame-accurate seek | P1 |
 
-### Exit Criteria
-- Generate timeline from 100 analyzed clips in < 2 min
-- Timeline has video + music + game audio tracks
-- Cuts aligned to beat map
-- AI suggestions displayed with confidence/reasoning
-- Accept/reject updates timeline
-- Integration test: analyze → generate → verify timeline structure
-- PROJECT_STATE.md updated
+**Exit criteria:**
+- Preview plays proxy clips in timeline sequence
+- Transport controls respond correctly
+- Unit/integration tests for playback controller
+- Documented, committed; approval to proceed to M2-005
 
 ---
 
-## Milestone 7: Export & AI Chat
+### M2-005 — Export Engine
 
-**Duration:** 3-4 weeks  
-**Goal:** Export video; edit timeline via natural language.
+**Goal:** Render timeline to video file via FFmpeg.
 
-### Features
-| Feature | Priority |
-|---------|----------|
+| Deliverable | Priority |
+|-------------|----------|
+| Render graph builder | P0 |
 | FFmpeg render pipeline | P0 |
 | Export presets (H.264 1080p60) | P0 |
-| Render queue UI | P0 |
+| Render queue + job handler | P0 |
 | Render progress (WebSocket) | P0 |
-| AI Chat Assistant | P1 |
-| NL command parsing (rule-based) | P1 |
-| Chat-driven timeline edits | P1 |
-| Audio mixing (basic) | P1 |
-| Export validation | P0 |
+| Render Queue UI | P0 |
+| Basic audio mixing | P1 |
 
-### Exit Criteria
+**Exit criteria:**
 - Export 3-min 1080p60 montage successfully
 - Render progress shown in real time
-- Chat commands: replace clip, make intro faster, remove slow-mo
-- All chat edits are undoable
-- E2E test: full workflow import → analyze → generate → edit → export
-- PROJECT_STATE.md updated
+- Unit tests for render graph builder
+- Documented, committed; approval to proceed to M2-006
 
 ---
 
-## Milestone 8: Beta & v1.0 Release
+### M2-006 — AI Metadata Engine
 
-**Duration:** 3-4 weeks  
-**Goal:** Beta with creators; polish; release v1.0.
+**Goal:** Cache layer for AI-derived metadata attached to media and timeline elements (structure only — no analysis agents yet).
 
-### Features
-| Feature | Priority |
-|---------|----------|
-| Thumbnail agent | P2 |
+| Deliverable | Priority |
+|-------------|----------|
+| AI metadata schema (confidence, reasoning, tags) | P0 |
+| Metadata cache storage (SQLite) | P0 |
+| API to read/write cached metadata on media items | P0 |
+| UI hooks to display cached metadata on clips | P1 |
+| Metadata invalidation on re-import/re-analyze | P0 |
+
+**Exit criteria:**
+- Metadata can be stored and retrieved for media items
+- Timeline clips can reference cached AI metadata
+- Unit + integration tests for metadata cache
+- PROJECT_STATE.md updated; **Milestone 2 complete — await approval before M3**
+
+---
+
+## Milestone 3: AI Analysis Pipeline
+
+**Duration:** 4–6 weeks  
+**Goal:** Analyze clips with computer vision and audio — no montage generation yet.
+
+| Deliverable | Priority |
+|-------------|----------|
+| Clip analysis agent | P0 |
+| OCR integration | P0 |
+| Object detection | P0 |
+| Scene understanding | P0 |
+| Motion analysis | P0 |
+| Audio analysis | P0 |
+| CLIP embeddings | P0 |
+| Semantic indexing | P0 |
+| Analysis job handlers + progress UI | P0 |
+| Clip scores and tags in media library | P0 |
+
+**Exit criteria:**
+- 100 clips analyzed with scores and semantic index
+- Analysis results stored in AI metadata cache (M2-006)
+- Validation metrics documented per agent
+- PROJECT_STATE.md updated; await approval before M4
+
+---
+
+## Milestone 4: AI Montage Generation
+
+**Duration:** 3–5 weeks  
+**Goal:** Automatically generate editable montages from analyzed clips and music.
+
+| Deliverable | Priority |
+|-------------|----------|
+| Automatic highlight selection | P0 |
+| Music synchronization | P0 |
+| Beat detection | P0 |
+| Pacing engine | P0 |
+| Transition selection | P0 |
+| Effects application | P0 |
+| Camera shake detection | P1 |
+| Montage generation workflow ("Generate Timeline") | P0 |
+| AI suggestions panel (accept/reject) | P0 |
+
+**Exit criteria:**
+- Generate timeline from 100 analyzed clips in < 2 min
+- Cuts aligned to beat map; transitions applied
+- Generated timeline fully editable with undo/redo
+- Integration test: analyze → generate → verify structure
+- PROJECT_STATE.md updated; await approval before M5
+
+---
+
+## Milestone 5: Albion Online Intelligence
+
+**Duration:** 4–5 weeks  
+**Goal:** Game-specific detection and scoring for Albion Online.
+
+| Deliverable | Priority |
+|-------------|----------|
+| Albion-specific OCR | P0 |
+| Kill detection | P0 |
+| Bomb detection | P0 |
+| Cooldown recognition | P0 |
+| Party status detection | P0 |
+| Player recognition | P1 |
+| Battle timeline extraction | P0 |
+| Guild metadata extraction | P1 |
+| Engagement scoring | P0 |
+| Albion UI template system + calibration wizard | P0 |
+| Event badges and filters in media library | P0 |
+
+**Exit criteria:**
+- Bomb detection ≥ 70% precision on validation set
+- Albion events displayed with confidence on clip cards
+- Battle timeline extractable from analyzed session
+- PROJECT_STATE.md updated; await approval before M6
+
+---
+
+## Milestone 6: AI Assistant
+
+**Duration:** 3–4 weeks  
+**Goal:** Natural language assistant for editing and montage creation.
+
+| Deliverable | Priority |
+|-------------|----------|
+| Chat panel UI | P0 |
+| LLM integration (Ollama / OpenAI) | P0 |
+| Project context injection | P0 |
+| NL command parsing | P0 |
+| Edit suggestions with confidence + reasoning | P0 |
+| Execute edits on timeline (undoable) | P0 |
+| Answer questions about project/media | P0 |
+| Generate complete montages from instructions | P0 |
+
+**Exit criteria:**
+- Chat commands modify timeline (replace clip, adjust pacing, etc.)
+- All chat edits are undoable
+- Assistant can generate montage from natural language prompt
+- E2E test: chat-driven edit workflow
+- PROJECT_STATE.md updated; await approval before M7
+
+---
+
+## Milestone 7: Polish & Production
+
+**Duration:** 4–6 weeks  
+**Goal:** Production-ready release.
+
+| Deliverable | Priority |
+|-------------|----------|
 | Performance optimization | P0 |
-| Error handling polish | P0 |
-| E2E test suite (complete) | P0 |
-| Beta distribution (macOS + Windows) | P0 |
-| Beta feedback collection | P0 |
-| Bug fixes from beta | P0 |
-| App packaging (electron-builder) | P0 |
-| Model download UI | P1 |
-| User documentation | P1 |
+| Installer creation (macOS + Windows) | P0 |
+| Auto-updater | P1 |
+| Crash reporting | P0 |
+| Profiling and memory optimization | P0 |
+| End-to-end test suite | P0 |
+| User documentation | P0 |
+| Beta program + feedback | P0 |
+| Release preparation and v1.0 tag | P0 |
 
-### Exit Criteria
-- Beta with 5-10 Albion creators
-- NPS ≥ 30 from beta feedback
+**Exit criteria:**
+- Beta with 5–10 Albion creators; NPS ≥ 30
 - Zero P0 bugs open
 - All E2E tests pass
 - macOS + Windows installers built
@@ -252,23 +333,34 @@
 ## Milestone Dependency Chart
 
 ```
-M0 ──→ M1 ──→ M2 ──→ M3 ──→ M5 ──→ M6 ──→ M7 ──→ M8
-                 └──→ M4 ──→ M6
+M0 ──→ M1 ──→ M2-001 ──→ M2-002 ──→ M2-003 ──→ M2-004 ──→ M2-005 ──→ M2-006
+                                                                              │
+                    M3 (AI Analysis) ◄────────────────────────────────────────┘
+                      │
+                      ▼
+                    M4 (AI Montage Generation)
+                      │
+                      ▼
+                    M5 (Albion Intelligence)
+                      │
+                      ▼
+                    M6 (AI Assistant)
+                      │
+                      ▼
+                    M7 (Polish & Production)
 ```
 
-**Parallelization opportunities:**
-- M3 (Clip/Albion) and M4 (Music/Style) can overlap after M2
-- Frontend timeline UI (M5) can start during late M3
-- Thumbnail agent (M8) can be developed during M7
+M2 sub-milestones are strictly sequential. M3 requires M2 complete. M4 requires M3. M5 requires M4 (Albion scoring uses analysis pipeline). M6 requires M5. M7 requires M6.
 
 ---
 
 ## Milestone Review Process
 
-1. Complete all exit criteria
+1. Complete all exit criteria for the milestone (or sub-milestone)
 2. Run test suite — all pass
-3. Demo working application
-4. Update PROJECT_STATE.md
-5. Review open bugs and technical debt
-6. Stakeholder approval to proceed
-7. Begin next milestone
+3. Update documentation
+4. Commit changes
+5. Update PROJECT_STATE.md with summary
+6. Demo working application
+7. **Stakeholder approval to proceed**
+8. Begin next milestone (or sub-milestone)

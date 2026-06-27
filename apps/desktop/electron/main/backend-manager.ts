@@ -113,6 +113,7 @@ export class BackendManager {
 
     try {
       await waitForBackendReady(connection.url);
+      await this.assertMediaLibraryAvailable(connection.url);
       this.connection = connection;
       this.resolvedUrl = connection.url;
       this.status = "ready";
@@ -122,6 +123,21 @@ export class BackendManager {
       this.errorMessage = err instanceof Error ? err.message : String(err);
       this.errorDetail = this.errorMessage;
       throw err;
+    }
+  }
+
+  private async assertMediaLibraryAvailable(baseUrl: string): Promise<void> {
+    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/health`, {
+      signal: AbortSignal.timeout(2_000),
+    });
+    if (!response.ok) {
+      throw new Error(`Backend health check failed: HTTP ${response.status}`);
+    }
+    const health = (await response.json()) as { features?: string[] };
+    if (!health.features?.includes("media_library")) {
+      throw new Error(
+        "Connected backend is missing the media library API. Stop any old backend on port 8000 and restart the app.",
+      );
     }
   }
 
@@ -198,6 +214,7 @@ export class BackendManager {
         }
         try {
           await waitForBackendReady(connection.url);
+          await this.assertMediaLibraryAvailable(connection.url);
           resolved = true;
           clearTimeout(timeout);
           this.connection = connection;

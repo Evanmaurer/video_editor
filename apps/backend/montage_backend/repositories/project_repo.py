@@ -59,6 +59,16 @@ class RecentProjectsRepository:
             for r in rows
         ]
 
+    async def get_by_id(
+        self,
+        session: AsyncSession,
+        project_id: str,
+    ) -> RecentProjectRow | None:
+        result = await session.execute(
+            select(RecentProjectRow).where(RecentProjectRow.id == project_id),
+        )
+        return result.scalar_one_or_none()
+
     async def upsert(
         self, session: AsyncSession, project_id: str, name: str, path: str
     ) -> None:

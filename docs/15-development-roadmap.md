@@ -1,8 +1,8 @@
 # Development Roadmap
 
 **Product:** MontageAI  
-**Version:** 1.0  
-**Date:** 2026-06-26  
+**Version:** 1.1  
+**Date:** 2026-06-27 (revised milestone plan)  
 **Target v1.0 Release:** Q1 2027
 
 ---
@@ -11,116 +11,125 @@
 
 ```
 2026 Q3          2026 Q4          2027 Q1
-─────────────────────────────────────────────
- M0    M1    M2    M3    M4    M5    M6    M7    M8
- Design Shell  Media AI    AI    Time- NL    Render Beta  v1.0
-              Import Clip  Music line  Edit        Release
-                    Analysis      Planner
+────────────────────────────────────────────────────────────
+ M0    M1    M2 (6 sub)    M3      M4       M5      M6    M7
+ Design Shell  Media Eng.  AI      AI       Albion  AI    Polish
+               Library     Analysis Montage Intel   Asst  Release
+               Timeline
+               Playback
+               Export
+               AI Metadata
 ```
 
 ---
 
-## Phase 0: Design (Current)
+## Phase 0: Design (Complete)
 
 **Duration:** 2 weeks  
-**Status:** In Progress
+**Status:** Complete (2026-06-26)
 
 - Complete software design package (20 documents)
 - Architecture review and approval
-- No application code
-
-**Exit criteria:** All Milestone 0 deliverables approved.
 
 ---
 
-## Phase 1: Foundation (Milestones 1-2)
+## Phase 1: Foundation (Milestone 1 — Complete)
 
-**Duration:** 6-8 weeks  
-**Goal:** Working desktop app with media import and basic timeline
+**Duration:** 3 weeks  
+**Status:** Complete (2026-06-27)
 
-### Milestone 1: Application Shell (3 weeks)
-- Electron app launches with dark theme UI
+- Electron app with dark theme UI
 - Python backend spawns and connects
-- Project create/open/save
-- Panel layout (empty panels)
-- Settings panel
+- Project create/open/save/close
+- Panel layout shell, settings panel
 
-### Milestone 2: Media Pipeline (3-5 weeks)
-- Import clips, music, references
-- Proxy and thumbnail generation
-- Media library with grid/list views
-- Basic metadata display
-- Background job queue with progress
-
-**User can:** Create project, import clips, browse media library.
+**User can:** Launch app, create/open projects, configure settings.
 
 ---
 
-## Phase 2: Intelligence (Milestones 3-4)
+## Phase 2: Media Processing Engine (Milestone 2)
 
-**Duration:** 6-8 weeks  
-**Goal:** AI analysis pipeline producing ranked, annotated clips
+**Duration:** 8–12 weeks  
+**Goal:** Complete editing engine — import, library, timeline, playback, export, AI metadata cache
 
-### Milestone 3: Clip & Albion Analysis (4-5 weeks)
-- Clip Analyzer agent (motion, scenes, excitement)
-- Albion Event Analyzer (bombs, wipes, engagements)
-- Analysis results in media library (scores, events)
-- Filter and sort by score/event type
-- AI suggestion card UI (display only)
+Milestone 2 is delivered as six sequential sub-milestones. Each sub-milestone must be complete, tested, documented, and committed before the next begins.
 
-### Milestone 4: Music & Style Analysis (2-3 weeks)
-- Music Analyzer (BPM, beats, drops, energy)
-- Style Analyzer (reference montage profiling)
-- Beat markers on timeline ruler
-- Music analysis visualization
+| Sub-milestone | Focus |
+|---------------|-------|
+| M2-001 | FFmpeg, import, metadata, proxy, waveform, job queue |
+| M2-002 | Media library UI |
+| M2-003 | Timeline engine + UI |
+| M2-004 | Playback engine |
+| M2-005 | Export engine |
+| M2-006 | AI metadata cache |
 
-**User can:** Import clips + music + references, analyze all, browse ranked clips with AI scores and event tags.
+**User can (after M2):** Import clips, browse library, edit timeline, preview, export video.
 
 ---
 
-## Phase 3: Creation (Milestones 5-6)
+## Phase 3: AI Analysis (Milestone 3)
 
-**Duration:** 6-8 weeks  
-**Goal:** AI-generated editable timeline with manual editing
+**Duration:** 4–6 weeks  
+**Goal:** Clip analysis pipeline producing ranked, indexed media
 
-### Milestone 5: Timeline Engine (4-5 weeks)
-- Full timeline engine (tracks, clips, effects)
-- Timeline UI (multi-track, drag-drop, trim, split)
-- Preview playback (proxy)
-- Undo/redo
-- Snap to beats
+- Clip analysis, OCR, object detection, scene understanding
+- Motion analysis, audio analysis, CLIP embeddings, semantic indexing
+- Analysis results flow into AI metadata cache
 
-### Milestone 6: AI Timeline Generation (2-3 weeks)
-- Timeline Planner agent
-- "Generate Timeline" workflow
-- AI suggestions panel (accept/reject)
-- AI metadata on clips (confidence, reasoning)
-
-**User can:** Generate AI timeline, manually edit, accept/reject AI suggestions, preview montage.
+**User can:** Analyze imported clips; browse by score, tags, and semantic search.
 
 ---
 
-## Phase 4: Polish (Milestones 7-8)
+## Phase 4: AI Montage Generation (Milestone 4)
 
-**Duration:** 6-8 weeks  
-**Goal:** Export, NL editing, beta release
+**Duration:** 3–5 weeks  
+**Goal:** AI-generated editable montages
 
-### Milestone 7: Export & AI Chat (3-4 weeks)
-- FFmpeg render pipeline
-- Export presets (H.264/H.265)
-- Render queue
-- AI Chat Assistant (NL timeline editing)
-- Audio mixing basics
+- Highlight selection, music sync, beat detection, pacing
+- Transitions, effects, camera shake detection
+- "Generate Timeline" workflow with accept/reject suggestions
 
-### Milestone 8: Beta & Release (3-4 weeks)
-- Thumbnail agent
-- Performance optimization
-- E2E test suite
-- Beta program with 5-10 creators
-- Bug fixes from beta feedback
+**User can:** Generate AI montage from analyzed clips and music; manually refine.
+
+---
+
+## Phase 5: Albion Intelligence (Milestone 5)
+
+**Duration:** 4–5 weeks  
+**Goal:** Game-specific Albion Online detection and scoring
+
+- Albion OCR, kill/bomb/cooldown detection, party status
+- Battle timeline extraction, engagement scoring
+- Calibration wizard and UI templates
+
+**User can:** Filter and rank Albion clips by game events (bombs, kills, wipes, etc.).
+
+---
+
+## Phase 6: AI Assistant (Milestone 6)
+
+**Duration:** 3–4 weeks  
+**Goal:** Natural language editing and montage creation
+
+- Chat assistant with project context
+- NL timeline edits (undoable)
+- Generate complete montages from instructions
+
+**User can:** Edit via chat; ask questions; generate montages from prompts.
+
+---
+
+## Phase 7: Polish & Production (Milestone 7)
+
+**Duration:** 4–6 weeks  
+**Goal:** v1.0 release
+
+- Performance optimization, profiling
+- Installers (macOS + Windows), updater, crash reporting
+- E2E test suite, documentation, beta program
 - v1.0 release
 
-**User can:** Full workflow — import → analyze → generate → edit → chat → export.
+**User can:** Full production workflow with stable installers.
 
 ---
 
@@ -132,7 +141,6 @@
 | v1.2 | Full-res preview; hardware render acceleration | Q2 2027 |
 | v1.3 | Batch project processing; template system | Q3 2027 |
 | v2.0 | Cloud collaboration; team features | Q4 2027 |
-| v2.1 | Motion graphics; text animation engine | Q1 2028 |
 
 ---
 
@@ -140,18 +148,42 @@
 
 ```
 M0 (Design)
- └── M1 (Shell)
-      └── M2 (Media)
-           ├── M3 (Clip/Albion AI)
-           │    └── M5 (Timeline Engine)
-           │         └── M6 (AI Timeline)
-           │              └── M7 (Export/Chat)
-           │                   └── M8 (Beta/Release)
-           └── M4 (Music/Style AI)
-                └── M6 (AI Timeline)
+ └── M1 (Shell) ✓
+      └── M2-001 → M2-002 → M2-003 → M2-004 → M2-005 → M2-006
+            └── M3 (AI Analysis)
+                 └── M4 (AI Montage Generation)
+                      └── M5 (Albion Intelligence)
+                           └── M6 (AI Assistant)
+                                └── M7 (Polish & Production)
 ```
 
-M3 and M4 can partially overlap after M2 is complete.
+---
+
+## Milestone Gates
+
+| Gate | Criteria | When |
+|------|----------|------|
+| G0 | Design package approved | End of M0 ✓ |
+| G1 | App launches, project CRUD works | End of M1 ✓ |
+| G2 | Import + library + timeline + playback + export | End of M2 |
+| G3 | 100 clips analyzed with semantic index | End of M3 |
+| G4 | AI montage generated in < 2 min | End of M4 |
+| G5 | Albion bomb detection ≥ 70% precision | End of M5 |
+| G6 | NL chat edits timeline; generates montage | End of M6 |
+| G7 | Beta NPS ≥ 30; v1.0 released | End of M7 |
+
+---
+
+## Approval Workflow
+
+At the completion of **each milestone** (M2–M7):
+
+1. Stop implementation
+2. Summarize completed work
+3. Update `PROJECT_STATE.md`
+4. **Wait for stakeholder approval** before starting the next milestone
+
+Within Milestone 2, each **sub-milestone** (M2-001–M2-006) must be complete, tested, documented, and committed before the next sub-milestone begins.
 
 ---
 
@@ -161,29 +193,12 @@ M3 and M4 can partially overlap after M2 is complete.
 |-----------|-------------------|------------|
 | M0 | 2 | Architecture, design |
 | M1 | 3 | Electron, React, Python, FastAPI |
-| M2 | 4 | FFmpeg, media processing |
-| M3 | 5 | OpenCV, OCR, game analysis |
-| M4 | 3 | Audio signal processing |
-| M5 | 5 | Timeline engine, complex UI |
-| M6 | 3 | AI planning, algorithm design |
-| M7 | 4 | FFmpeg rendering, NLP |
-| M8 | 4 | QA, optimization, beta |
-| **Total** | **~33 weeks** | |
+| M2 | 10 | FFmpeg, media, timeline, playback, export |
+| M3 | 5 | OpenCV, ML, audio, CLIP |
+| M4 | 4 | AI planning, music sync |
+| M5 | 5 | Game analysis, OCR, Albion |
+| M6 | 4 | LLM, NLP, editing agents |
+| M7 | 5 | QA, packaging, optimization |
+| **Total** | **~38 weeks** | |
 
-Estimate assumes 1-2 full-time engineers.
-
----
-
-## Success Gates
-
-| Gate | Criteria | When |
-|------|----------|------|
-| G0 | Design package approved | End of M0 |
-| G1 | App launches, project CRUD works | End of M1 |
-| G2 | 100 clips imported with proxies in < 2 min | End of M2 |
-| G3 | Albion bomb detection ≥ 70% precision | End of M3 |
-| G4 | BPM detection within ±2 BPM on test tracks | End of M4 |
-| G5 | Timeline editing with undo/redo, 50+ clips | End of M5 |
-| G6 | AI timeline generated in < 2 min for 100 clips | End of M6 |
-| G7 | Export 3-min 1080p60 in < 5 min; NL edit works | End of M7 |
-| G8 | Beta NPS ≥ 30; zero P0 bugs | End of M8 |
+Estimate assumes 1–2 full-time engineers.

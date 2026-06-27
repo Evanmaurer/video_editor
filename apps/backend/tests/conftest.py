@@ -38,6 +38,8 @@ async def client(test_app_engine, monkeypatch, auth_headers):
 
     deps._project_service = ProjectService(database.db_manager.app_session_factory)
     deps._settings_service = AppSettingsService(database.db_manager.app_session_factory)
+    deps._media_service = None
+    deps._timeline_service = None
 
     async def mock_startup():
         pass

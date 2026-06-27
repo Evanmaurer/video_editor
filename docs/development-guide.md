@@ -278,7 +278,7 @@ See [19-testing-strategy.md](./19-testing-strategy.md) for full testing guide.
 
 ## 12. Building for Production
 
-Production packaging (`./scripts/build-release.sh`) is planned for Milestone 8.
+Production packaging (`./scripts/build-release.sh`) is planned for Milestone 7.
 
 ---
 
@@ -319,12 +319,37 @@ Update docs when architecture changes:
 
 ## 16. Milestone Workflow
 
-1. Check current milestone in [PROJECT_STATE.md](../PROJECT_STATE.md)
+### Milestone structure (M2–M7)
+
+| Milestone | Name |
+|-----------|------|
+| M2 | Media Processing Engine (6 sub-milestones) |
+| M3 | AI Analysis Pipeline |
+| M4 | AI Montage Generation |
+| M5 | Albion Online Intelligence |
+| M6 | AI Assistant |
+| M7 | Polish & Production |
+
+### Sub-milestone rules (Milestone 2 only)
+
+Milestone 2 is implemented as M2-001 through M2-006. **Do not begin the next sub-milestone until the current one is complete, tested, documented, and committed.**
+
+### Milestone completion rules (all milestones)
+
+At the completion of each milestone:
+
+1. Stop implementation
+2. Summarize work completed
+3. Update [PROJECT_STATE.md](../PROJECT_STATE.md)
+4. **Wait for stakeholder approval** before proceeding
+
+### Daily workflow
+
+1. Check current milestone/sub-milestone in [PROJECT_STATE.md](../PROJECT_STATE.md)
 2. Pick task from [17-task-backlog.md](./17-task-backlog.md)
-3. Create branch: `milestone-{N}-{task-name}`
+3. Create branch: `milestone-{N}-{task-name}` or `m2-001-{task-name}`
 4. Implement following [18-coding-standards.md](./18-coding-standards.md)
 5. Write tests per [19-testing-strategy.md](./19-testing-strategy.md)
 6. Verify against [20-definition-of-done.md](./20-definition-of-done.md)
 7. Update PROJECT_STATE.md
-8. Create PR for review
-9. After milestone exit criteria met → stakeholder approval → next milestone
+8. Commit; request review/approval before next sub-milestone or milestone

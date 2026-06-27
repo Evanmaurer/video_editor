@@ -23,3 +23,6 @@ logs/
 .cache/
 .DS_Store
 *.log
+*.mp4
+*.jpg
+apps/backend/bombvid/*

@@ -13,6 +13,9 @@ importers:
       '@montage/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@montage/timeline-engine':
+        specifier: workspace:*
+        version: link:../../packages/timeline-engine
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -82,6 +85,12 @@ importers:
         version: 2.1.9(@types/node@22.20.0)
 
   packages/shared-types: {}
+
+  packages/timeline-engine:
+    dependencies:
+      '@montage/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
 
 packages:
 

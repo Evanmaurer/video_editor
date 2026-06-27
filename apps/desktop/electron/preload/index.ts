@@ -1,4 +1,5 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
+import { pathToMontageFileUrl } from "../media-file-url";
 
 export interface BackendRequestPayload {
   method: string;
@@ -31,6 +32,12 @@ export interface MontageAPI {
   backendRequest: (payload: BackendRequestPayload) => Promise<BackendResponsePayload>;
   openDirectory: () => Promise<string | null>;
   openProject: () => Promise<string | null>;
+  openVideoFiles: () => Promise<string[]>;
+  importVideoFolder: () => Promise<string | null>;
+  resolveImportPaths: (paths: string[]) => Promise<string[]>;
+  getMediaFileUrl: (path: string) => string;
+  getThumbnailDataUrl: (path: string) => Promise<string | null>;
+  getPathForFile: (file: File) => string | null;
   revealInFolder: (path: string) => Promise<void>;
 }
 
@@ -40,6 +47,25 @@ const montageAPI: MontageAPI = {
   backendRequest: (payload) => ipcRenderer.invoke("backend:request", payload),
   openDirectory: () => ipcRenderer.invoke("dialog:openDirectory"),
   openProject: () => ipcRenderer.invoke("dialog:openProject"),
+  openVideoFiles: () => ipcRenderer.invoke("dialog:openVideoFiles"),
+  importVideoFolder: () => ipcRenderer.invoke("dialog:importVideoFolder"),
+  resolveImportPaths: (paths) => ipcRenderer.invoke("import:resolvePaths", paths),
+  getMediaFileUrl: (path: string) => {
+    try {
+      return pathToMontageFileUrl(path);
+    } catch {
+      return "";
+    }
+  },
+  getThumbnailDataUrl: (path: string) => ipcRenderer.invoke("media:getThumbnailDataUrl", path),
+  getPathForFile: (file: File) => {
+    try {
+      return webUtils.getPathForFile(file);
+    } catch {
+      const legacy = file as File & { path?: string };
+      return legacy.path ?? null;
+    }
+  },
   revealInFolder: (path: string) => ipcRenderer.invoke("shell:revealInFolder", path),
 };
 

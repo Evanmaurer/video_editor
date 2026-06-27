@@ -14,13 +14,33 @@ export class WebSocketClient {
     }
 
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        this.ws?.close();
+        reject(new Error("WebSocket connection timed out"));
+      }, 5_000);
+
       this.ws = new WebSocket(connection.wsUrl);
 
       this.ws.onopen = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
         resolve();
       };
 
       this.ws.onerror = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
         reject(new Error("WebSocket connection failed"));
       };
 
@@ -33,7 +53,17 @@ export class WebSocketClient {
         }
       };
 
-      this.ws.onclose = () => {
+      this.ws.onclose = (event) => {
+        clearTimeout(timeout);
+        if (!settled) {
+          settled = true;
+          if (event.code === 1008) {
+            reject(new Error("WebSocket rejected: invalid auth token"));
+            return;
+          }
+          reject(new Error("WebSocket closed before connecting"));
+          return;
+        }
         this.scheduleReconnect();
       };
     });

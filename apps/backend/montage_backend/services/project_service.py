@@ -134,15 +134,20 @@ class ProjectService:
 
     async def get_project(self, project_id: str) -> Project:
         async with self._app_session_factory() as app_session:
-            recents = await self._recent_repo.list_recent(app_session, limit=100)
-        for summary in recents:
-            root = Path(summary.path)
-            session_factory = await self._ensure_project_db(root)
-            async with session_factory() as session:
-                project = await self._project_repo.get_by_root_path(session, str(root))
-                if project is not None and project.id == project_id:
-                    return project
-        raise ProjectNotFoundError(f"Project not found: {project_id}")
+            recent = await self._recent_repo.get_by_id(app_session, project_id)
+        if recent is None:
+            raise ProjectNotFoundError(f"Project not found: {project_id}")
+
+        root = Path(recent.path).resolve()
+        if not is_valid_project_path(root):
+            raise ProjectNotFoundError(f"Project not found: {project_id}")
+
+        session_factory = await self._ensure_project_db(root)
+        async with session_factory() as session:
+            project = await self._project_repo.get_by_root_path(session, str(root))
+            if project is None or project.id != project_id:
+                raise ProjectNotFoundError(f"Project not found: {project_id}")
+            return project
 
     async def save_project(self, project: Project) -> Project:
         root = Path(project.root_path).resolve()

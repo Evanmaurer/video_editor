@@ -307,7 +307,7 @@ jobs:
 | Timeline render (50 clips) | < 16ms/frame | Performance API |
 | Export 3-min 1080p60 | < 5 min | pytest benchmark |
 
-Performance regression tests added at Milestone 8.
+Performance regression tests added at Milestone 7.
 
 ---
 

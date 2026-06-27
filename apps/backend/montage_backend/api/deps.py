@@ -2,15 +2,20 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from montage_backend.database import db_manager
+from montage_backend.media.processor import MediaProcessor
 from montage_backend.services.llm_service import llm_service
+from montage_backend.services.media_service import MediaService
 from montage_backend.services.project_service import AppSettingsService, ProjectService
+
+from montage_backend.services.timeline_service import TimelineService
 
 _project_service: ProjectService | None = None
 _settings_service: AppSettingsService | None = None
+_media_service: MediaService | None = None
+_timeline_service: TimelineService | None = None
 
 
 async def ensure_database_started() -> None:
@@ -40,3 +45,29 @@ async def get_app_session() -> AsyncGenerator[AsyncSession, None]:
 
 def get_llm_service():
     return llm_service
+
+
+def get_media_service() -> MediaService:
+    global _media_service
+    if _media_service is None:
+        from montage_backend.config import settings
+        from montage_backend.media.ffmpeg_runner import FFmpegRunner
+
+        runner = FFmpegRunner(
+            ffmpeg_bin=settings.ffmpeg_bin,
+            ffprobe_bin=settings.ffprobe_bin,
+        )
+        processor = MediaProcessor(runner=runner)
+        _media_service = MediaService(
+            get_project_service(),
+            processor=processor,
+            worker_count=settings.worker_count,
+        )
+    return _media_service
+
+
+def get_timeline_service() -> TimelineService:
+    global _timeline_service
+    if _timeline_service is None:
+        _timeline_service = TimelineService(get_project_service())
+    return _timeline_service
