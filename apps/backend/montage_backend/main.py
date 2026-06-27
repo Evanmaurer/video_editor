@@ -6,10 +6,18 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+
+from sqlalchemy.exc import SQLAlchemyError
 
 from montage_backend import __version__
 from montage_backend.api.deps import get_project_service, get_settings_service
-from montage_backend.api.middleware import AuthMiddleware, montage_error_handler
+from montage_backend.api.exception_handlers import (
+    montage_error_handler,
+    sqlalchemy_error_handler,
+    unhandled_exception_handler,
+)
+from montage_backend.api.middleware import AuthMiddleware
 from montage_backend.api.router import api_router
 from montage_backend.config import settings
 from montage_backend.database import db_manager
@@ -29,14 +37,39 @@ async def lifespan(app: FastAPI):
     app_settings = await settings_service.get_settings()
     await llm_service.configure(app_settings.llm)
     logger.info("backend_started", version=__version__)
+
+    if _runtime_port > 0:
+        ready = {
+            "port": _runtime_port,
+            "host": settings.host,
+            "token": settings.auth_token,
+        }
+        print(json.dumps(ready), flush=True)
+
     yield
     await db_manager.shutdown()
     logger.info("backend_stopped")
 
 
+_runtime_port: int = 0
+
+
 app = FastAPI(title="MontageAI Backend", version=__version__, lifespan=lifespan)
+# Electron dev loads the renderer from http://localhost:<vite-port> while the backend
+# binds to http://127.0.0.1:<port>. Without CORS, browser fetch returns "Failed to fetch".
+# Production loads file:// (Origin: null). Backend is local-only (127.0.0.1).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["null"],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(AuthMiddleware)
 app.add_exception_handler(MontageError, montage_error_handler)
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_error_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 app.include_router(api_router)
 
 
@@ -86,11 +119,10 @@ def _find_free_port(host: str) -> int:
 
 
 def main() -> None:
+    global _runtime_port
     configure_logging()
-    port = settings.port if settings.port > 0 else _find_free_port(settings.host)
-    ready = {"port": port, "token": settings.auth_token}
-    print(json.dumps(ready), flush=True)
-    uvicorn.run(app, host=settings.host, port=port, log_level=settings.log_level.lower())
+    _runtime_port = settings.port if settings.port > 0 else _find_free_port(settings.host)
+    uvicorn.run(app, host=settings.host, port=_runtime_port, log_level=settings.log_level.lower())
 
 
 if __name__ == "__main__":

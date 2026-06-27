@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -51,17 +52,15 @@ class LlmProviderConfig(BaseModel):
     base_url: str | None = "http://127.0.0.1:11434"
 
 
+def _default_project_path() -> str:
+    return str(Path.home() / "Videos" / "Montages")
+
+
 class AppSettings(BaseModel):
-    default_project_path: str = ""
+    default_project_path: str = Field(default_factory=_default_project_path)
     llm: LlmProviderConfig = Field(default_factory=LlmProviderConfig)
     gpu_enabled: bool = True
     worker_count: int = 2
-
-    def model_post_init(self, __context: object) -> None:
-        if not self.default_project_path:
-            from pathlib import Path
-
-            self.default_project_path = str(Path.home() / "Videos" / "Montages")
 
 
 class Project(BaseModel):

@@ -4,11 +4,9 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from montage_backend.config import settings
-from montage_backend.database import init_app_db
-from montage_backend.main import app
 from montage_backend.models.db.app_db import AppSettingRow, RecentProjectRow
 from montage_backend.models.db.base import Base
-from montage_backend.services.llm_service import llm_service
+from montage_backend.main import app
 from montage_backend.services.project_service import AppSettingsService, ProjectService
 
 

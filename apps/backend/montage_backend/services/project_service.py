@@ -61,15 +61,23 @@ class ProjectService:
     async def create_project(self, request: CreateProjectRequest) -> Project:
         root = Path(request.root_path).resolve()
 
-        if root.exists():
-            if is_valid_project_path(root):
-                raise ProjectAlreadyExistsError(f"Project already exists at {root}")
-            if any(root.iterdir()):
-                raise ProjectAlreadyExistsError(
-                    f"Directory already exists and is not empty: {root}",
-                )
-        else:
-            root.mkdir(parents=True, exist_ok=True)
+        if root.exists() and not root.is_dir():
+            raise InvalidProjectError(f"Project path is not a directory: {root}")
+
+        try:
+            if root.exists():
+                if is_valid_project_path(root):
+                    raise ProjectAlreadyExistsError(f"Project already exists at {root}")
+                if any(root.iterdir()):
+                    raise ProjectAlreadyExistsError(
+                        f"Directory already exists and is not empty: {root}",
+                    )
+            else:
+                root.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise InvalidProjectError(
+                f"Cannot create project directory at {root}: {exc}",
+            ) from exc
 
         now = utc_now_iso()
         settings = request.settings or ProjectSettings()

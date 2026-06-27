@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import secrets
 from pathlib import Path
 
@@ -11,7 +12,7 @@ class Settings(BaseSettings):
     port: int = 0
     auth_token: str = ""
     log_level: str = "INFO"
-    app_data_dir: Path = Path.home() / ".montage-ai"
+    app_data_dir: Path = Path(os.environ.get("MONTAGE_APP_DATA_DIR", str(Path.home() / ".montage-ai")))
     gpu_enabled: bool = True
     worker_count: int = 2
 
@@ -20,7 +21,7 @@ class Settings(BaseSettings):
     def __init__(self, **kwargs: object) -> None:
         super().__init__(**kwargs)
         if not self.auth_token:
-            self.auth_token = secrets.token_urlsafe(32)
+            object.__setattr__(self, "auth_token", secrets.token_urlsafe(32))
 
 
 settings = Settings()

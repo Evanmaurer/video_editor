@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncGenerator
 from pathlib import Path
 
@@ -8,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from montage_backend.config import settings
 from montage_backend.models.db.app_db import AppSettingRow, RecentProjectRow
 from montage_backend.models.db.base import Base
+
+_ = (AppSettingRow, RecentProjectRow)
 
 
 def get_app_db_path() -> Path:
@@ -47,23 +50,60 @@ async def init_project_db(engine: AsyncEngine) -> None:
 
 class DatabaseManager:
     def __init__(self) -> None:
-        self.app_engine = create_app_engine()
-        self.app_session_factory = async_sessionmaker(
-            self.app_engine, expire_on_commit=False, class_=AsyncSession
+        self._app_engine: AsyncEngine | None = None
+        self._app_session_factory: async_sessionmaker[AsyncSession] | None = None
+        self._started = False
+        self._startup_lock = asyncio.Lock()
+
+    @property
+    def app_engine(self) -> AsyncEngine:
+        if self._app_engine is None:
+            self._app_engine = create_app_engine()
+        return self._app_engine
+
+    @app_engine.setter
+    def app_engine(self, engine: AsyncEngine) -> None:
+        self._app_engine = engine
+        self._app_session_factory = async_sessionmaker(
+            engine, expire_on_commit=False, class_=AsyncSession
         )
+        self._started = False
+
+    @property
+    def app_session_factory(self) -> async_sessionmaker[AsyncSession]:
+        if self._app_session_factory is None:
+            self._app_session_factory = async_sessionmaker(
+                self.app_engine, expire_on_commit=False, class_=AsyncSession
+            )
+        return self._app_session_factory
+
+    @app_session_factory.setter
+    def app_session_factory(self, factory: async_sessionmaker[AsyncSession]) -> None:
+        self._app_session_factory = factory
+
+    async def ensure_started(self) -> None:
+        if self._started:
+            return
+        async with self._startup_lock:
+            if self._started:
+                return
+            await init_app_db(self.app_engine)
+            self._started = True
 
     async def startup(self) -> None:
-        await init_app_db(self.app_engine)
+        await self.ensure_started()
 
     async def shutdown(self) -> None:
-        await self.app_engine.dispose()
+        if self._app_engine is not None:
+            await self._app_engine.dispose()
+            self._app_engine = None
+            self._app_session_factory = None
+            self._started = False
 
     async def get_app_session(self) -> AsyncGenerator[AsyncSession, None]:
+        await self.ensure_started()
         async with self.app_session_factory() as session:
             yield session
 
 
 db_manager = DatabaseManager()
-
-# Ensure metadata includes all app tables
-_ = (AppSettingRow, RecentProjectRow)
