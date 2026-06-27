@@ -6,44 +6,19 @@
 
 ---
 
-## Milestone 0: Design Package ✦ Current
+## Milestone 0: Design Package ✓
 
 **Duration:** 2 weeks  
-**Goal:** Complete software design documentation; no code.
-
-### Deliverables
-- [x] Product Requirements Document
-- [x] Software Architecture Document
-- [x] Folder Structure
-- [x] Database Schema
-- [x] Frontend Architecture
-- [x] Backend Architecture
-- [x] AI Agent Design
-- [x] Timeline Engine Design
-- [x] Rendering Pipeline Design
-- [x] UI Wireframes
-- [x] Sequence Diagrams
-- [x] API Design
-- [x] Technology Decisions
-- [x] Risk Analysis
-- [x] Development Roadmap
-- [x] Milestone Breakdown
-- [x] Task Backlog
-- [x] Coding Standards
-- [x] Testing Strategy
-- [x] Definition of Done
-
-### Exit Criteria
-- All documents reviewed and approved
-- No open architecture questions blocking M1
-- PROJECT_STATE.md updated
+**Goal:** Complete software design documentation; no code.  
+**Status:** Complete (2026-06-26)
 
 ---
 
-## Milestone 1: Application Shell
+## Milestone 1: Application Shell ✓
 
 **Duration:** 3 weeks  
-**Goal:** Electron app launches with professional dark UI; Python backend connects; project CRUD works.
+**Goal:** Electron app launches with professional dark UI; Python backend connects; project CRUD works.  
+**Status:** Complete (2026-06-27)
 
 ### Features
 | Feature | Priority |
@@ -61,12 +36,12 @@
 | Shared types package scaffold | P0 |
 
 ### Exit Criteria
-- App launches on macOS in < 5s
-- Backend health check passes
-- Create project → folder structure created → reopen project works
-- All panels render (empty state)
-- Unit tests for project service
-- PROJECT_STATE.md updated
+- [x] App launches on macOS in < 5s
+- [x] Backend health check passes
+- [x] Create project → folder structure created → reopen project works
+- [x] All panels render (empty state)
+- [x] Unit tests for project service
+- [x] PROJECT_STATE.md updated
 
 ---
 

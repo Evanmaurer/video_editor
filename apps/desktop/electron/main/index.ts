@@ -1,9 +1,13 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { join } from "path";
 import { BackendManager } from "./backend-manager";
+import { registerBackendRequestHandler } from "./backend-request";
+
+delete process.env.ELECTRON_RUN_AS_NODE;
 
 let mainWindow: BrowserWindow | null = null;
 const backendManager = new BackendManager();
+registerBackendRequestHandler(backendManager);
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -33,7 +37,12 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
-  await backendManager.start();
+  try {
+    await backendManager.start();
+  } catch (err) {
+    console.error("[main] Backend failed to start:", err);
+  }
+
   createWindow();
 
   app.on("activate", () => {

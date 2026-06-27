@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "pnpm --filter @montage/desktop dev",
     "build": "pnpm --filter @montage/desktop build",
-    "test": "pnpm --filter @montage/desktop test && pnpm test:backend",
+    "test": "pnpm validate:electron && pnpm --filter @montage/desktop test && pnpm test:backend",
+    "validate:electron": "node scripts/validate-electron-config.mjs",
     "test:backend": "cd apps/backend && .venv/bin/pytest tests/ -v",
     "lint": "pnpm --filter @montage/desktop lint",
     "typecheck": "pnpm --filter @montage/desktop typecheck"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22.0.0",
+    "pnpm": ">=9"
   }
 }

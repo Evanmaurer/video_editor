@@ -11,7 +11,6 @@ export function NewProjectWizard() {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [step, setStep] = useState(1);
 
   const handleBrowse = async () => {
     const dir = await window.montageAPI.openDirectory();
@@ -59,9 +58,8 @@ export function NewProjectWizard() {
           </button>
         </div>
 
-        {step === 1 && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted">Step 1 of 1: Project Details</p>
+        <div className="space-y-4">
+          <p className="text-sm text-muted">Project Details</p>
             <div>
               <label className="text-xs text-muted block mb-1">Project Name</label>
               <input
@@ -108,7 +106,6 @@ export function NewProjectWizard() {
               </button>
             </div>
           </div>
-        )}
       </div>
     </div>
   );

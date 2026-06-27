@@ -6,7 +6,20 @@ MontageAI is a professional desktop application for creating AI-assisted gaming 
 
 ## Status
 
-**Milestone 0: Design Package** — Complete, awaiting approval before implementation begins.
+**Milestone 1: Application Shell** — Complete (tag: `milestone-1`). Milestone 2 (Media Pipeline) is next.
+
+See [Milestone 1 Summary](docs/milestone-1-summary.md) and [PROJECT_STATE.md](PROJECT_STATE.md) for details.
+
+## Quick Start
+
+```bash
+./scripts/setup.sh   # Install Node + Python dependencies
+pnpm dev             # Start Electron app + Python backend
+```
+
+**Requirements:** Node.js 22 LTS (see `.node-version`), Python 3.11+, pnpm 9+. FFmpeg is required starting in Milestone 2.
+
+Optional: copy `.env.example` to `.env` to customize backend URL, auth token, or connect-only mode.
 
 ## Key Features (Planned)
 
@@ -38,24 +51,31 @@ Complete design package in [`/docs`](docs/README.md):
 - [Software Architecture](docs/02-software-architecture.md)
 - [Development Roadmap](docs/15-development-roadmap.md)
 - [Development Guide](docs/development-guide.md)
+- [Milestone 1 Summary](docs/milestone-1-summary.md)
 - [Project State](PROJECT_STATE.md)
 
-## Project Structure (Planned)
+## Project Structure
 
 ```
 montage-ai/
 ├── apps/desktop/          # Electron + React frontend
 ├── apps/backend/          # Python FastAPI backend
-├── packages/shared-types/ # Shared TypeScript + Python types
-├── ai/                    # AI agents and game plugins
+├── packages/shared-types/ # Shared TypeScript types
+├── ai/plugins/albion/     # Albion game plugin stub (M3+)
 ├── docs/                  # Design documentation
-├── scripts/               # Setup and build scripts
-└── tests/                 # E2E and integration tests
+├── scripts/               # setup.sh, validate-electron-config.mjs
+└── PROJECT_STATE.md       # Living project memory
 ```
 
 ## Development
 
-Implementation begins after Milestone 0 approval. See [Development Guide](docs/development-guide.md) for setup instructions.
+```bash
+pnpm test        # All frontend + backend tests (32 total)
+pnpm typecheck   # TypeScript strict check
+pnpm lint        # ESLint
+```
+
+See [Development Guide](docs/development-guide.md) for full setup, environment variables, and workflow.
 
 ## License
 

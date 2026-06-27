@@ -18,45 +18,49 @@ export class MontageApiError extends Error {
 }
 
 export class MontageApiClient {
-  constructor(
-    private baseUrl: string,
-    private token: string,
-  ) {}
+  constructor(private baseUrl: string) {}
 
   private async request<T>(
     method: string,
     path: string,
     body?: unknown,
   ): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Montage-Token": this.token,
-      },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+    const response = await window.montageAPI.backendRequest({ method, path, body });
 
     if (!response.ok) {
-      const error = (await response.json().catch(() => ({}))) as {
-        error?: string;
-        message?: string;
-      };
+      let parsed: { error?: string; message?: string } = {};
+      try {
+        parsed = JSON.parse(response.body) as { error?: string; message?: string };
+      } catch {
+        // non-json error body
+      }
       throw new MontageApiError(
-        error.error ?? "REQUEST_FAILED",
-        error.message ?? `Request failed: ${response.status}`,
+        parsed.error ?? "REQUEST_FAILED",
+        parsed.message ??
+          `HTTP ${response.status} ${response.statusText}\nURL: ${response.url}\nBody: ${response.body}`,
       );
     }
 
-    if (response.status === 204) {
+    if (response.status === 204 || response.body.length === 0) {
       return undefined as T;
     }
-    return response.json() as Promise<T>;
+    return JSON.parse(response.body) as T;
   }
 
   async getHealth(): Promise<HealthResponse> {
-    const response = await fetch(`${this.baseUrl}/health`);
-    return response.json() as Promise<HealthResponse>;
+    const response = await window.montageAPI.backendRequest({
+      method: "GET",
+      path: "/health",
+    });
+
+    if (!response.ok) {
+      throw new MontageApiError(
+        "HEALTH_CHECK_FAILED",
+        `HTTP ${response.status} ${response.statusText}\nURL: ${response.url}\nBody: ${response.body}`,
+      );
+    }
+
+    return JSON.parse(response.body) as HealthResponse;
   }
 
   async createProject(data: CreateProjectRequest): Promise<Project> {
@@ -95,11 +99,13 @@ export class MontageApiClient {
 let client: MontageApiClient | null = null;
 
 export async function initApiClient(): Promise<MontageApiClient> {
+  const status = await window.montageAPI.getBackendStatus();
   const connection = await window.montageAPI.getBackendConnection();
   if (!connection) {
-    throw new Error("Backend not connected");
+    throw new Error(status.errorDetail ?? status.error ?? "Backend not connected");
   }
-  client = new MontageApiClient(connection.url, connection.token);
+
+  client = new MontageApiClient(connection.url);
   return client;
 }
 

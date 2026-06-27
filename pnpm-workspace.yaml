@@ -1,3 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# pnpm v10+ blocks dependency lifecycle scripts by default (supply-chain security).
+# Electron's postinstall (install.js) must run to download the binary and write path.txt.
+# @see https://pnpm.io/settings#allowbuilds
+allowBuilds:
+  electron: true
+  esbuild: true

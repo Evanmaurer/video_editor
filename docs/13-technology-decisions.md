@@ -20,6 +20,10 @@
 | ADR-008 | JSON Schema for Shared Types | Accepted |
 | ADR-009 | Proxy Media for Preview and Analysis | Accepted |
 | ADR-010 | Local-First with Optional Cloud LLM | Accepted |
+| ADR-011 | LLM Provider Abstraction | Accepted |
+| ADR-012 | GPU Optional with CPU Fallback | Accepted |
+| ADR-013 | Data-Driven Albion UI Templates | Accepted |
+| ADR-014 | Graceful AI Degradation | Accepted |
 
 ---
 
@@ -300,6 +304,65 @@ Local-first: rule-based parser + optional local small LLM (Llama 3.2 3B / Phi-3)
 - Local LLM adds ~2GB model download
 - Rule-based parser must be maintained for common commands
 - Cloud integration requires API key management in settings
+
+---
+
+## ADR-011: LLM Provider Abstraction
+
+**Status:** Accepted (2026-06-27)
+
+### Decision
+
+Chat assistant uses a `LlmProvider` interface with pluggable backends: Ollama (default), OpenAI, and none. Model and provider are selectable in Settings. No hardcoded model in application code.
+
+### Default Models
+
+- **Capable hardware:** Qwen3 8B Instruct via Ollama (`qwen3:8b-instruct`)
+- **Low-end hardware:** Llama 3.2 3B via Ollama (`llama3.2:3b`)
+
+The rest of the application does not depend on which LLM is selected. If LLM is unavailable, AI chat disables gracefully; editor remains fully functional.
+
+---
+
+## ADR-012: GPU Optional with CPU Fallback
+
+**Status:** Accepted (2026-06-27)
+
+### Decision
+
+GPU acceleration is optional. Backend auto-detects hardware on startup. GPU used when available and enabled in settings. CPU fallback always available with user-visible performance warning (~3-5x slower estimate).
+
+---
+
+## ADR-013: Data-Driven Albion UI Templates
+
+**Status:** Accepted (2026-06-27)
+
+### Decision
+
+Albion event detection uses YAML template files supporting multiple resolutions and UI scales. Ship common presets. Include calibration wizard for user fine-tuning. New templates added without core code changes.
+
+See `ai/plugins/albion/`.
+
+---
+
+## ADR-014: Graceful AI Degradation
+
+**Status:** Accepted (2026-06-27)
+
+### Decision
+
+AI component failures must never block core workflows (import, manual edit, preview, export).
+
+| Component failure | Fallback |
+|-------------------|----------|
+| OCR | Continue without OCR metadata |
+| Albion detection | Use motion/scene analysis only |
+| Music analysis | Manual beat markers |
+| Local LLM | Disable AI chat; editor fully functional |
+| Style analyzer | Timeline planner uses default pacing |
+
+Agents return low-confidence results rather than throwing. Services catch agent errors and log; UI shows degraded state.
 
 ---
 

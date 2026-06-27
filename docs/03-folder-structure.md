@@ -38,10 +38,9 @@ montage-ai/
 ├── docs/                            # All design documentation
 │
 ├── scripts/
-│   ├── setup.sh                     # Dev environment bootstrap
-│   ├── download-models.sh           # Fetch AI model weights
-│   ├── codegen.sh                   # Regenerate shared types
-│   └── build-release.sh             # Production build
+│   ├── setup.sh                     # Dev environment bootstrap (M1)
+│   └── validate-electron-config.mjs   # electron-vite entry path guard (M1)
+│   # Planned: download-models.sh, codegen.sh, build-release.sh
 │
 ├── assets/
 │   ├── icons/                       # App icons
@@ -60,7 +59,7 @@ montage-ai/
 
 ```
 apps/desktop/
-├── package.json
+├── package.json              # "main": "out/main/index.js" (electron-vite v2)
 ├── electron.vite.config.ts
 ├── tailwind.config.ts
 ├── tsconfig.json
@@ -70,8 +69,9 @@ apps/desktop/
 │   ├── main/
 │   │   ├── index.ts                 # Main process entry
 │   │   ├── backend-manager.ts       # Spawn/monitor Python backend
-│   │   ├── menu.ts                  # Application menu
-│   │   └── ipc-handlers.ts          # IPC registration
+│   │   ├── backend-config.ts        # Dev/prod backend URL resolution
+│   │   ├── backend-paths.ts         # Resolve backend dir + Python venv
+│   │   └── backend-request.ts       # IPC HTTP proxy to backend
 │   └── preload/
 │       └── index.ts                 # Context bridge API
 │

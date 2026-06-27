@@ -9,7 +9,6 @@ const PROVIDERS: LlmProviderType[] = ["ollama", "openai", "none"];
 export function SettingsPanel() {
   const setView = useProjectStore((s) => s.setView);
   const health = useProjectStore((s) => s.health);
-  const settings = useSettingsStore((s) => s.settings);
   const setSettings = useSettingsStore((s) => s.setSettings);
   const [local, setLocal] = useState<AppSettings | null>(null);
   const [saving, setSaving] = useState(false);

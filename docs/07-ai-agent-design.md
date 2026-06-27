@@ -578,3 +578,28 @@ def agent_result_to_suggestion(result: AgentResult, context: SuggestionContext) 
 Agent versions tracked in analysis results (`analysis_version` column). When agent logic changes:
 1. Bump `agent_version`
 2. Re-analysis optional (user prompted: "Updated analyzer available")
+
+---
+
+## 10. Graceful Degradation (AI Resilience)
+
+AI features enhance editing but **never block** core workflows. The application must remain fully functional for import, manual editing, preview, and export when any AI component fails.
+
+| Component | On Failure | User Impact |
+|-----------|------------|-------------|
+| OCR | Skip OCR; continue clip analysis | No on-screen text metadata; ranking uses motion/audio |
+| Albion Event Analyzer | Fall back to motion/scene scores | No bomb/wipe badges; manual review |
+| Music Analyzer | Skip beat map generation | User adds manual beat markers (M4+) |
+| Style Analyzer | Use default pacing profile | Timeline planner uses generic pacing |
+| Timeline Planner | Return empty timeline + error | User builds timeline manually |
+| LLM / Chat Assistant | Disable chat panel | Manual editing unchanged |
+| Thumbnail Agent | Skip auto-thumbnails | User picks frame manually |
+
+### Implementation Rules
+
+1. Agents return `AgentResult` with low confidence — never throw for analysis uncertainty.
+2. Services wrap agent calls in try/except; persist partial results when possible.
+3. Frontend checks `AiFeatureStatus` from `/api/v1/settings/ai-status` to show/hide AI features.
+4. Health endpoint reports `ai_chat_enabled` and `performance_note` (CPU/GPU).
+5. Each degraded state shows a clear, non-blocking message — not an error dialog.
+

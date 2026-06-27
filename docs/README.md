@@ -2,7 +2,7 @@
 
 **Codename:** MontageAI  
 **First supported game:** Albion Online  
-**Status:** Milestone 0 — Design Complete (awaiting approval)
+**Status:** Milestone 1 — Application Shell complete (see [milestone-1-summary.md](./milestone-1-summary.md))
 
 This directory contains the complete software design package for MontageAI, a professional desktop application for AI-assisted gaming montage creation.
 
@@ -33,6 +33,7 @@ This directory contains the complete software design package for MontageAI, a pr
 | 20 | Definition of Done | [20-definition-of-done.md](./20-definition-of-done.md) |
 | — | UI/UX Design | [ui-ux-design.md](./ui-ux-design.md) |
 | — | Development Guide | [development-guide.md](./development-guide.md) |
+| — | Milestone 1 Summary | [milestone-1-summary.md](./milestone-1-summary.md) |
 
 ## Quick Links
 

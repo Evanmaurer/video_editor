@@ -10,7 +10,7 @@
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| Node.js | 20 LTS+ | Frontend build |
+| Node.js | 22 LTS | Frontend build (required — Node 24.16+ and 26.x break Electron install) |
 | pnpm | 9+ | Package manager |
 | Python | 3.11+ | Backend + AI |
 | FFmpeg | 6.0+ | Media processing |
@@ -46,11 +46,11 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt -r requirements-dev.txt
 cd ../..
 
-# Download AI models (optional for M1, required for M3+)
-./scripts/download-models.sh
+# Download AI models (optional — script planned for M3+)
+# ./scripts/download-models.sh
 
-# Download test media (optional)
-./scripts/download-test-media.sh
+# Download test media (optional — script planned for M2+)
+# ./scripts/download-test-media.sh
 ```
 
 ---
@@ -60,25 +60,95 @@ cd ../..
 ### 3.1 Start Development Server
 
 ```bash
-# Starts Electron + Python backend concurrently
+# From repo root — starts Electron and the Python FastAPI backend automatically
 pnpm dev
 ```
 
-This runs:
-1. Python backend on dynamic localhost port
-2. Electron app with HMR
+`pnpm dev` runs `electron-vite dev`. The Electron **main process** spawns the Python backend before opening the window:
 
-### 3.2 Backend Only
+1. Spawns `apps/backend/.venv/bin/python -m montage_backend.main`
+2. Waits for the backend `/ready` endpoint to respond
+3. Opens the Electron window and connects the renderer via IPC
+
+No separate backend terminal is required for normal development.
+
+#### Backend environment variables
+
+| Variable | Development default | Purpose |
+|----------|---------------------|---------|
+| `MONTAGE_BACKEND_URL` | `http://127.0.0.1:8000` | API base URL. When set, Electron connects here and does not spawn a backend. |
+| `MONTAGE_AUTH_TOKEN` | `montage-dev-token` | Shared auth token for API/WebSocket (must match on manually started backends) |
+| `MONTAGE_HOST` | `127.0.0.1` | Backend bind/connect host |
+| `MONTAGE_PORT` | `8000` | Backend port when spawning or connecting |
+| `MONTAGE_APP_DATA_DIR` | `~/.montage-ai` | App data directory (Electron sets this when spawning) |
+| `MONTAGE_LOG_LEVEL` | `INFO` | Backend log level |
+
+Copy `.env.example` to `.env` to customize. Electron main reads `process.env` at startup.
+
+**Development flow:** Electron resolves `http://127.0.0.1:8000` by default. It connects to an existing server on that port, or spawns one there if none is running. The renderer receives the backend URL via IPC; HTTP requests are proxied through the main process (`backend:request` IPC) to avoid browser CORS.
+
+When running the backend manually, set `MONTAGE_AUTO_SPAWN=false` in `.env` so Electron connects only (no duplicate spawn).
+
+Manual backend (must use the same auth token):
+
+```bash
+cd apps/backend && source .venv/bin/activate
+MONTAGE_AUTH_TOKEN=montage-dev-token MONTAGE_PORT=8000 python -m montage_backend.main
+# or:
+MONTAGE_AUTH_TOKEN=montage-dev-token uvicorn montage_backend.main:app --reload --port 8000
+```
+
+If the backend fails to start, the UI shows the Python stderr traceback (not just "Failed to fetch").
+
+### 3.2 Electron-Vite Output Paths
+
+**electron-vite v2** compiles the main and preload processes to `apps/desktop/out/`:
+
+| Process | Source | Build output | package.json |
+|---------|--------|--------------|--------------|
+| Main | `electron/main/index.ts` | `out/main/index.js` | `"main": "out/main/index.js"` |
+| Preload | `electron/preload/index.ts` | `out/preload/index.js` | (referenced from main) |
+| Renderer | `index.html` + `src/` | `out/renderer/` (production) | Dev: Vite at `localhost:5173` |
+
+electron-vite resolves the Electron entry from `package.json` `"main"` after building. If `"main"` points to a different directory (e.g. legacy `dist-electron/`), startup fails with:
+
+```
+Error: No electron app entry file found: .../dist-electron/main/index.js
+```
+
+**Validation:** Run `pnpm validate:electron` from the repo root, or `pnpm --filter @montage/desktop postbuild` after a production build. Regression test: `apps/desktop/src/config/electron-entry.test.ts`.
+
+### 3.2.1 Electron Binary Install (pnpm + Node.js)
+
+Two configuration requirements must be satisfied or `node_modules/electron/path.txt` is never created:
+
+1. **pnpm v10+ `allowBuilds`** — Lifecycle scripts are blocked by default. `pnpm-workspace.yaml` must include:
+
+   ```yaml
+   allowBuilds:
+     electron: true
+     esbuild: true
+   ```
+
+   Placeholder strings (e.g. `electron: set this to true or false`) or corrupted numeric keys cause pnpm to skip postinstall with `ERR_PNPM_IGNORED_BUILDS`.
+
+2. **Node.js 22 LTS** — Node.js 24.16+ and 26.x stall `extract-zip` during Electron's postinstall; install exits 0 but `path.txt` is missing ([electron#51619](https://github.com/electron/electron/issues/51619)). Use the version in `.node-version` (22). With Homebrew: `brew install node@22 && export PATH="/opt/homebrew/opt/node@22/bin:$PATH"`.
+
+After install, verify: `pnpm exec electron --version` (from `apps/desktop`) and `node scripts/validate-electron-config.mjs --require-electron`.
+
+### 3.3 Backend Only
 
 ```bash
 cd apps/backend
 source .venv/bin/activate
-uvicorn montage_backend.main:app --reload --port 8000
+python -m montage_backend.main
+# Or with fixed port:
+MONTAGE_PORT=8000 python -m montage_backend.main
 ```
 
-API docs available at `http://127.0.0.1:8000/docs`.
+The backend prints a JSON line with `port`, `host`, and `token` once it is accepting connections. API docs: `http://127.0.0.1:<port>/docs`.
 
-### 3.3 Frontend Only
+### 3.4 Frontend Only
 
 ```bash
 cd apps/desktop
@@ -112,50 +182,29 @@ See [03-folder-structure.md](./03-folder-structure.md) for complete structure.
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start full dev environment |
+| `pnpm dev` | Start full dev environment (Electron + backend) |
+| `pnpm test` | Run all tests (frontend Vitest + backend pytest) |
+| `pnpm validate:electron` | Verify package.json main matches electron-vite `out/` output |
 | `pnpm build` | Production build |
-| `pnpm test` | Run all frontend tests |
 | `pnpm lint` | ESLint check |
 | `pnpm typecheck` | TypeScript check |
-| `pytest` | Run all backend tests |
-| `ruff check .` | Python lint |
-| `mypy montage_backend ai` | Python type check |
-| `./scripts/codegen.sh` | Regenerate shared types |
-| `pnpm test:e2e` | Run Playwright E2E tests |
+| `cd apps/backend && pytest tests/` | Backend tests only |
+| `ruff check .` | Python lint (from `apps/backend`) |
+| `mypy montage_backend` | Python type check (from `apps/backend`) |
 
 ---
 
 ## 6. Shared Types Workflow
 
-Types are defined once in JSON Schema and generated for both languages:
+Types are defined in `packages/shared-types/src/` for Milestone 1. JSON Schema codegen (`./scripts/codegen.sh`) is planned for Milestone 2.
 
-```bash
-# 1. Edit schema
-vim packages/shared-types/schemas/timeline.schema.json
-
-# 2. Regenerate
-./scripts/codegen.sh
-
-# 3. TypeScript types updated in packages/shared-types/src/
-# 4. Python models updated in packages/shared-types/python/
-```
-
-Never manually edit generated files.
+Never manually edit generated files once codegen is introduced.
 
 ---
 
 ## 7. Database Migrations
 
-```bash
-cd apps/backend
-source .venv/bin/activate
-
-# Create new migration
-alembic revision --autogenerate -m "add clip_analysis table"
-
-# Apply migrations
-alembic upgrade head
-```
+Milestone 1 uses filtered SQLAlchemy `create_all` for `app.db` and per-project `project.db`. Alembic migrations are planned for Milestone 2.
 
 ---
 
@@ -197,8 +246,8 @@ cd apps/backend && pytest tests/unit
 # Backend integration tests
 cd apps/backend && pytest tests/integration
 
-# E2E tests (requires built app)
-pnpm test:e2e
+# E2E tests (planned Milestone 2)
+# pnpm test:e2e
 
 # AI validation tests
 cd apps/backend && pytest tests/validation
@@ -229,14 +278,7 @@ See [19-testing-strategy.md](./19-testing-strategy.md) for full testing guide.
 
 ## 12. Building for Production
 
-```bash
-# Full production build
-./scripts/build-release.sh
-
-# Output:
-# dist/montage-ai-{version}-mac.dmg
-# dist/montage-ai-{version}-win.exe
-```
+Production packaging (`./scripts/build-release.sh`) is planned for Milestone 8.
 
 ---
 

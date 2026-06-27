@@ -269,11 +269,11 @@ See [10-ui-wireframes.md](./10-ui-wireframes.md) and [ui-ux-design.md](./ui-ux-d
 
 ## 13. Open Questions
 
-| # | Question | Owner | Status |
-|---|----------|-------|--------|
-| OQ-1 | Local LLM vs cloud API for chat assistant? | Engineering | Recommend hybrid: local small model + optional cloud |
-| OQ-2 | GPU requirement for analysis? | Engineering | Recommend optional GPU; CPU fallback with warning |
-| OQ-3 | Albion UI region templates for OCR? | Design | Need community validation screenshots |
+| # | Question | Resolution |
+|---|----------|------------|
+| OQ-1 | Local LLM vs cloud API for chat assistant? | **Resolved:** Provider abstraction supporting Ollama (default), OpenAI, and none. Model selectable in Settings. Default local: Qwen3 8B Instruct; fallback: Llama 3.2 3B on low-end hardware. |
+| OQ-2 | GPU requirement for analysis? | **Resolved:** GPU optional. Auto-detect hardware; CPU fallback with performance warning. App fully functional in CPU-only mode. |
+| OQ-3 | Albion UI region templates for OCR? | **Resolved:** Data-driven template system with multiple resolution/scale presets, calibration wizard, and extensible YAML configs. See `ai/plugins/albion/`. |
 
 ## 14. Appendix: AI Suggestion Card Format
 

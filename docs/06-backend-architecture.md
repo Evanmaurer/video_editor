@@ -300,23 +300,28 @@ class Settings(BaseSettings):
 
 ## 12. Error Handling
 
+Domain errors and unhandled exceptions are handled in `montage_backend/api/exception_handlers.py`:
+
 ```python
 class MontageError(Exception):
     code: str
     message: str
     details: dict | None = None
 
-class MediaNotFoundError(MontageError): ...
-class AnalysisFailedError(MontageError): ...
-class RenderFailedError(MontageError): ...
+# Handlers registered in main.py:
+# - MontageError → structured JSON (400/404/409)
+# - SQLAlchemyError → DATABASE_ERROR (500) + logged traceback
+# - Exception → INTERNAL_SERVER_ERROR (500) + logged traceback
+```
 
-@app.exception_handler(MontageError)
-async def montage_error_handler(request, exc: MontageError):
-    return JSONResponse(status_code=400, content={
-        "error": exc.code,
-        "message": exc.message,
-        "details": exc.details,
-    })
+Response shape:
+
+```json
+{
+  "error": "PROJECT_ALREADY_EXISTS",
+  "message": "Project already exists at /path",
+  "details": null
+}
 ```
 
 ## 13. Logging
