@@ -6,6 +6,8 @@ import { EditorLayout } from "@/components/layout/PanelLayout";
 import { WelcomeScreen } from "@/components/welcome/WelcomeScreen";
 import { NewProjectWizard } from "@/components/welcome/NewProjectWizard";
 import { SettingsPanel } from "@/components/settings/SettingsPanel";
+import { ExportDialog } from "@/components/render/ExportDialog";
+import { RenderQueuePanel } from "@/components/render/RenderQueuePanel";
 import { getApiClient, initApiClient } from "@/services/api-client";
 import { wsClient } from "@/services/websocket-client";
 import { useProjectStore, useUIStore } from "@/stores/project-store";
@@ -150,6 +152,8 @@ export function App() {
       )}
       <StatusBar />
       {showNewProjectWizard && <NewProjectWizard />}
+      <ExportDialog />
+      <RenderQueuePanel />
     </div>
   );
 }

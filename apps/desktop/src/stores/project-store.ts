@@ -44,10 +44,18 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
 interface UIState {
   showNewProjectWizard: boolean;
+  showExportDialog: boolean;
+  showRenderQueue: boolean;
   setShowNewProjectWizard: (show: boolean) => void;
+  setShowExportDialog: (show: boolean) => void;
+  setShowRenderQueue: (show: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
   showNewProjectWizard: false,
+  showExportDialog: false,
+  showRenderQueue: false,
   setShowNewProjectWizard: (showNewProjectWizard) => set({ showNewProjectWizard }),
+  setShowExportDialog: (showExportDialog) => set({ showExportDialog }),
+  setShowRenderQueue: (showRenderQueue) => set({ showRenderQueue }),
 }));

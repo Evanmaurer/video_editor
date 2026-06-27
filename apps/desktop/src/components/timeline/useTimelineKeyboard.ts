@@ -1,5 +1,15 @@
 import { useEffect } from "react";
+import { usePlaybackStore } from "@/stores/playback-store";
 import { useTimelineStore } from "@/stores/timeline-store";
+
+function isTypingInFormField(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  return Boolean(
+    target.closest("input, textarea, select, [contenteditable='true'], [contenteditable='']"),
+  );
+}
 
 export function useTimelineKeyboard() {
   const undo = useTimelineStore((s) => s.undo);
@@ -12,9 +22,15 @@ export function useTimelineKeyboard() {
   const selectedClipIds = useTimelineStore((s) => s.selectedClipIds);
   const playheadMs = useTimelineStore((s) => s.playheadMs);
   const pasteAtPlayhead = useTimelineStore((s) => s.pasteAtPlayhead);
+  const togglePlay = usePlaybackStore((s) => s.togglePlay);
+  const stepFrame = usePlaybackStore((s) => s.stepFrame);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingInFormField(e.target)) {
+        return;
+      }
+
       const mod = e.metaKey || e.ctrlKey;
       if (mod && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
@@ -51,11 +67,22 @@ export function useTimelineKeyboard() {
         }
         return;
       }
+      if (e.key === " " && !mod) {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+      if (e.key === "ArrowLeft" && !mod) {
+        e.preventDefault();
+        stepFrame(-1);
+        return;
+      }
+      if (e.key === "ArrowRight" && !mod) {
+        e.preventDefault();
+        stepFrame(1);
+        return;
+      }
       if (e.key === "Backspace" || e.key === "Delete") {
-        const target = e.target as HTMLElement | null;
-        if (target?.closest("input, textarea, select, [contenteditable=true]")) {
-          return;
-        }
         if (selectedClipIds.length > 0) {
           e.preventDefault();
           deleteSelected();
@@ -73,6 +100,8 @@ export function useTimelineKeyboard() {
     copySelected,
     cutSelected,
     pasteAtPlayhead,
+    togglePlay,
+    stepFrame,
     document,
     selectedClipIds,
     playheadMs,

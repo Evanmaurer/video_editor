@@ -40,6 +40,7 @@ const sampleItem = (overrides: Partial<MediaItem> = {}): MediaItem => ({
   proxy_status: "processing",
   waveform_status: "processing",
   scene_status: "processing",
+  metadata_status: "pending",
   tags: [],
   is_favorite: false,
   import_status: "processing",

@@ -148,6 +148,7 @@ export interface MediaItem {
   proxy_status: ProcessingStatus;
   waveform_status: ProcessingStatus;
   scene_status: ProcessingStatus;
+  metadata_status: ProcessingStatus;
   tags: string[];
   is_favorite: boolean;
   import_status: ImportStatus;
@@ -199,7 +200,73 @@ export type WSEvent =
   | { type: "job.progress"; job_id: string; progress: number; message: string }
   | { type: "job.complete"; job_id: string }
   | { type: "job.failed"; job_id: string; error: string }
+  | {
+      type: "render.progress";
+      job_id: string;
+      project_id: string;
+      status: RenderJobStatus;
+      progress: number;
+      eta_seconds: number | null;
+      elapsed_seconds: number;
+      output_path: string | null;
+      error_message: string | null;
+      message?: string | null;
+    }
   | { type: "backend.status"; status: string };
+
+export type RenderJobStatus =
+  | "queued"
+  | "running"
+  | "paused"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type RenderCodec = "h264";
+
+export interface RenderPresetInfo {
+  id: string;
+  label: string;
+  codec: RenderCodec;
+  width: number;
+  height: number;
+  frame_rate: number;
+  hardware_available: boolean;
+}
+
+export interface RenderJobSummary {
+  id: string;
+  project_id: string;
+  timeline_id: string;
+  preset_id: string;
+  status: RenderJobStatus;
+  progress: number;
+  output_path: string | null;
+  error_message: string | null;
+  eta_seconds: number | null;
+  elapsed_seconds: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RenderJobDetail extends RenderJobSummary {
+  ffmpeg_command: string | null;
+  hardware_encoding: boolean;
+  log_tail: string[];
+}
+
+export interface RenderLogResponse {
+  job_id: string;
+  lines: string[];
+  total_lines: number;
+}
+
+export interface StartRenderRequest {
+  timeline_id?: string | null;
+  preset_id?: string;
+  output_name?: string | null;
+  use_hardware_encoding?: boolean;
+}
 
 // --- Timeline (M2-003) ---
 
@@ -278,4 +345,93 @@ export interface SaveTimelineResponse {
 
 export interface CreateTimelineRequest {
   name?: string;
+}
+
+// --- AI Metadata (M2-006) ---
+
+export type MetadataFeatureKey = "visual" | "audio" | "ai_cache";
+
+export interface SceneMarker {
+  timestamp_ms: number;
+  score: number;
+}
+
+export interface VisualMetadata {
+  scenes: SceneMarker[];
+  motion_score: number;
+  camera_movement: {
+    label: string;
+    pan: number;
+    zoom: number;
+    shake: number;
+  };
+  brightness: {
+    mean: number;
+    min: number;
+    max: number;
+    std: number;
+  };
+  color_histogram: {
+    bins: number;
+    r: number[];
+    g: number[];
+    b: number[];
+  };
+  blur_score: number;
+  sharpness: number;
+  keyframes: Array<{ timestamp_ms: number }>;
+}
+
+export interface AudioMetadata {
+  loudness_lufs: number | null;
+  mean_volume_db: number | null;
+  max_volume_db: number | null;
+  peaks: number[];
+  silence_regions: Array<{ start_ms: number; end_ms: number }>;
+  beat_markers: Array<{ timestamp_ms: number; strength: number }>;
+  speech: {
+    has_speech: boolean;
+    speech_ratio: number;
+    confidence: number;
+  };
+}
+
+export interface AICacheMetadata {
+  ocr_text: unknown[] | null;
+  embedding_vectors: number[] | null;
+  object_detections: unknown[] | null;
+  face_detections: unknown[] | null;
+  optical_flow: Record<string, unknown> | null;
+  clip_embeddings: number[] | null;
+  schema_version: number;
+}
+
+export interface MetadataFeatureRecord {
+  media_id: string;
+  feature_key: MetadataFeatureKey;
+  status: ProcessingStatus;
+  payload: Record<string, unknown>;
+  confidence: number | null;
+  reasoning: string | null;
+  source_fingerprint: string | null;
+  schema_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MediaMetadataSummary {
+  media_id: string;
+  status: ProcessingStatus;
+  source_fingerprint: string | null;
+  visual: VisualMetadata | null;
+  audio: AudioMetadata | null;
+  ai_cache: AICacheMetadata | null;
+  features: MetadataFeatureRecord[];
+}
+
+export interface UpsertMetadataFeatureRequest {
+  payload: Record<string, unknown>;
+  confidence?: number | null;
+  reasoning?: string | null;
+  status?: ProcessingStatus;
 }

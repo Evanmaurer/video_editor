@@ -10,12 +10,16 @@ from montage_backend.services.llm_service import llm_service
 from montage_backend.services.media_service import MediaService
 from montage_backend.services.project_service import AppSettingsService, ProjectService
 
+from montage_backend.playback.playback_service import PlaybackService
 from montage_backend.services.timeline_service import TimelineService
 
 _project_service: ProjectService | None = None
 _settings_service: AppSettingsService | None = None
 _media_service: MediaService | None = None
 _timeline_service: TimelineService | None = None
+_playback_service: PlaybackService | None = None
+_render_service: "RenderService | None" = None
+_metadata_service: "MetadataService | None" = None
 
 
 async def ensure_database_started() -> None:
@@ -71,3 +75,55 @@ def get_timeline_service() -> TimelineService:
     if _timeline_service is None:
         _timeline_service = TimelineService(get_project_service())
     return _timeline_service
+
+
+def get_playback_service() -> PlaybackService:
+    global _playback_service
+    if _playback_service is None:
+        from montage_backend.config import settings
+
+        _playback_service = PlaybackService(
+            get_project_service(),
+            get_media_service(),
+            worker_count=settings.worker_count,
+        )
+    return _playback_service
+
+
+def get_render_service():
+    global _render_service
+    if _render_service is None:
+        from montage_backend.config import settings
+        from montage_backend.media.ffmpeg_runner import FFmpegRunner
+        from montage_backend.services.render_service import RenderService
+
+        runner = FFmpegRunner(
+            ffmpeg_bin=settings.ffmpeg_bin,
+            ffprobe_bin=settings.ffprobe_bin,
+        )
+        _render_service = RenderService(
+            get_project_service(),
+            get_timeline_service(),
+            get_media_service(),
+            runner,
+        )
+    return _render_service
+
+
+def get_metadata_service():
+    global _metadata_service
+    if _metadata_service is None:
+        from montage_backend.config import settings
+        from montage_backend.services.metadata_service import MetadataService
+
+        media_service = get_media_service()
+        _metadata_service = MetadataService(
+            get_project_service(),
+            worker_count=max(1, settings.worker_count // 2),
+        )
+        _metadata_service.wire_media_hooks(
+            get_media_item=media_service.get_media_item,
+            update_media_status=media_service.update_metadata_status,
+        )
+        media_service.set_metadata_enqueue(_metadata_service.enqueue_analysis)
+    return _metadata_service

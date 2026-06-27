@@ -11,7 +11,16 @@ import type {
   OpenProjectRequest,
   Project,
   ProjectSummary,
+  RenderJobDetail,
+  RenderJobSummary,
+  RenderLogResponse,
+  RenderPresetInfo,
+  MetadataFeatureKey,
+  MetadataFeatureRecord,
+  MediaMetadataSummary,
+  UpsertMetadataFeatureRequest,
   SaveTimelineResponse,
+  StartRenderRequest,
   TimelineDocument,
   TimelineSummary,
   UpdateMediaRequest,
@@ -200,6 +209,118 @@ export class MontageApiClient {
       "PUT",
       `/api/v1/projects/${projectId}/timelines/${timelineId}`,
       document,
+    );
+  }
+
+  async decodePlaybackFrame(
+    projectId: string,
+    data: {
+      media_id: string;
+      source_ms: number;
+      frame_rate: number;
+      quality: "proxy" | "full";
+    },
+  ): Promise<{
+    image_base64: string;
+    decode_time_ms: number;
+    cache_hit: boolean;
+    gpu_accelerated: boolean;
+  }> {
+    return this.request("POST", `/api/v1/projects/${projectId}/playback/decode`, data);
+  }
+
+  async prefetchPlaybackFrames(
+    projectId: string,
+    data: {
+      frame_rate: number;
+      requests: Array<{
+        media_id: string;
+        source_ms: number;
+        quality: "proxy" | "full";
+      }>;
+    },
+  ): Promise<void> {
+    await this.request("POST", `/api/v1/projects/${projectId}/playback/prefetch`, data);
+  }
+
+  async reportPlaybackMetrics(
+    projectId: string,
+    data: { playback_fps: number; dropped_frames: number },
+  ): Promise<{
+    playback_fps: number;
+    dropped_frames: number;
+    decode_time_ms: number;
+    memory_usage_mb: number;
+    gpu_accelerated: boolean;
+    cache_hit_rate: number;
+  }> {
+    return this.request("POST", `/api/v1/projects/${projectId}/playback/metrics`, data);
+  }
+
+  async getPlaybackMetrics(projectId: string): Promise<{
+    playback_fps: number;
+    dropped_frames: number;
+    decode_time_ms: number;
+    memory_usage_mb: number;
+    gpu_accelerated: boolean;
+    cache_hit_rate: number;
+  }> {
+    return this.request("GET", `/api/v1/projects/${projectId}/playback/metrics`);
+  }
+
+  async listRenderPresets(projectId: string): Promise<RenderPresetInfo[]> {
+    return this.request("GET", `/api/v1/projects/${projectId}/render/presets`);
+  }
+
+  async startRender(
+    projectId: string,
+    data: StartRenderRequest,
+  ): Promise<RenderJobSummary> {
+    return this.request("POST", `/api/v1/projects/${projectId}/render`, data);
+  }
+
+  async listRenderJobs(projectId: string): Promise<RenderJobSummary[]> {
+    return this.request("GET", `/api/v1/projects/${projectId}/render/jobs`);
+  }
+
+  async getRenderJob(projectId: string, jobId: string): Promise<RenderJobDetail> {
+    return this.request("GET", `/api/v1/projects/${projectId}/render/jobs/${jobId}`);
+  }
+
+  async getRenderLogs(projectId: string, jobId: string): Promise<RenderLogResponse> {
+    return this.request("GET", `/api/v1/projects/${projectId}/render/jobs/${jobId}/logs`);
+  }
+
+  async pauseRenderJob(projectId: string, jobId: string): Promise<RenderJobSummary> {
+    return this.request("POST", `/api/v1/projects/${projectId}/render/jobs/${jobId}/pause`);
+  }
+
+  async resumeRenderJob(projectId: string, jobId: string): Promise<RenderJobSummary> {
+    return this.request("POST", `/api/v1/projects/${projectId}/render/jobs/${jobId}/resume`);
+  }
+
+  async cancelRenderJob(projectId: string, jobId: string): Promise<RenderJobSummary> {
+    return this.request("POST", `/api/v1/projects/${projectId}/render/jobs/${jobId}/cancel`);
+  }
+
+  async getMediaMetadata(projectId: string, mediaId: string): Promise<MediaMetadataSummary> {
+    return this.request("GET", `/api/v1/projects/${projectId}/media/${mediaId}/metadata`);
+  }
+
+  async analyzeMediaMetadata(projectId: string, mediaId: string): Promise<MediaMetadataSummary> {
+    return this.request("POST", `/api/v1/projects/${projectId}/media/${mediaId}/metadata/analyze`);
+  }
+
+  async upsertMediaMetadataFeature(
+    projectId: string,
+    mediaId: string,
+    featureKey: MetadataFeatureKey,
+    data: UpsertMetadataFeatureRequest,
+  ): Promise<MetadataFeatureRecord> {
+    return this.request(
+      "PUT",
+      `/api/v1/projects/${projectId}/media/${mediaId}/metadata/${featureKey}`,
+      data,
     );
   }
 }

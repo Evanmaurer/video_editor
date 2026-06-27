@@ -36,6 +36,7 @@ export interface MontageAPI {
   importVideoFolder: () => Promise<string | null>;
   resolveImportPaths: (paths: string[]) => Promise<string[]>;
   getMediaFileUrl: (path: string) => string;
+  getPlaybackVideoUrl: (filePath: string, proxyPath?: string | null) => Promise<string | null>;
   getThumbnailDataUrl: (path: string) => Promise<string | null>;
   getPathForFile: (file: File) => string | null;
   revealInFolder: (path: string) => Promise<void>;
@@ -57,6 +58,8 @@ const montageAPI: MontageAPI = {
       return "";
     }
   },
+  getPlaybackVideoUrl: (filePath: string, proxyPath?: string | null) =>
+    ipcRenderer.invoke("media:getPlaybackVideoUrl", filePath, proxyPath ?? null),
   getThumbnailDataUrl: (path: string) => ipcRenderer.invoke("media:getThumbnailDataUrl", path),
   getPathForFile: (file: File) => {
     try {

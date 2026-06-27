@@ -42,6 +42,7 @@ class MediaItemRow(Base):
     proxy_status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
     waveform_status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
     scene_status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
+    metadata_status: Mapped[str] = mapped_column(String, nullable=False, default="pending")
     tags_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     is_favorite: Mapped[int] = mapped_column(nullable=False, default=0)
     import_status: Mapped[str] = mapped_column(String, nullable=False, default="pending")

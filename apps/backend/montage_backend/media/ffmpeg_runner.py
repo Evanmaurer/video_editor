@@ -10,6 +10,7 @@ from typing import Any
 from montage_backend.media.ffmpeg_tools import require_ffmpeg
 
 ProgressCallback = Callable[[str, float, str], Awaitable[None] | None]
+LogLineCallback = Callable[[str], Awaitable[None] | None]
 
 _TIME_RE = re.compile(r"time=(\d+):(\d+):(\d+\.\d+)")
 
@@ -19,13 +20,20 @@ class ProcessingContext:
     """Cancellation and progress reporting for media operations."""
 
     cancel_event: asyncio.Event = field(default_factory=asyncio.Event)
+    pause_event: asyncio.Event = field(default_factory=asyncio.Event)
     on_progress: ProgressCallback | None = None
+    on_log_line: LogLineCallback | None = None
 
     def check_cancelled(self) -> None:
-        from montage_backend.models.domain.media import ProcessingCancelledError
+        from montage_backend.models.domain.media import (
+            ProcessingCancelledError,
+            ProcessingPausedError,
+        )
 
         if self.cancel_event.is_set():
             raise ProcessingCancelledError("Media processing was cancelled")
+        if self.pause_event.is_set():
+            raise ProcessingPausedError("Media processing was paused")
 
     async def report(self, operation: str, progress: float, message: str) -> None:
         if self.on_progress is None:
@@ -91,11 +99,15 @@ class FFmpegRunner:
                 if not chunk:
                     break
                 stderr_chunks.append(chunk)
-                if ctx.cancel_event.is_set():
+                line = chunk.decode(errors="replace").rstrip("\n")
+                if line and ctx.on_log_line is not None:
+                    result = ctx.on_log_line(line)
+                    if asyncio.iscoroutine(result):
+                        await result
+                if ctx.cancel_event.is_set() or ctx.pause_event.is_set():
                     proc.terminate()
                     break
                 if duration_seconds and duration_seconds > 0:
-                    line = chunk.decode(errors="replace")
                     current = parse_ffmpeg_time_seconds(line)
                     if current is not None:
                         progress = min(current / duration_seconds, 0.99)
@@ -107,6 +119,10 @@ class FFmpegRunner:
             self._active_processes.pop(id(proc), None)
 
         stderr = b"".join(stderr_chunks).decode(errors="replace")
+        if ctx.pause_event.is_set():
+            from montage_backend.models.domain.media import ProcessingPausedError
+
+            raise ProcessingPausedError("Media processing was paused")
         ctx.check_cancelled()
 
         if proc.returncode != 0:

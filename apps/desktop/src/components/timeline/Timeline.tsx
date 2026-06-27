@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MediaItem } from "@montage/shared-types";
 import { useMediaStore } from "@/stores/media-store";
 import { useProjectStore } from "@/stores/project-store";
+import { usePlaybackStore } from "@/stores/playback-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { buildAddClipFromMediaCommand } from "@/services/timeline-actions";
 import { TimelineRuler } from "./TimelineRuler";
@@ -28,7 +29,7 @@ export function Timeline() {
   const execute = useTimelineStore((s) => s.execute);
   const undo = useTimelineStore((s) => s.undo);
   const redo = useTimelineStore((s) => s.redo);
-  const setPlayhead = useTimelineStore((s) => s.setPlayhead);
+  const seekTimeline = usePlaybackStore((s) => s.seekTimeline);
   const zoomIn = useTimelineStore((s) => s.zoomIn);
   const zoomOut = useTimelineStore((s) => s.zoomOut);
   const toggleSnap = useTimelineStore((s) => s.toggleSnap);
@@ -47,11 +48,21 @@ export function Timeline() {
   useEffect(() => {
     if (!project?.id) {
       reset();
+      usePlaybackStore.getState().reset();
       return;
     }
+    usePlaybackStore.getState().setProjectId(project.id);
     void loadTimeline(project.id);
-    return () => reset();
+    void useMediaStore.getState().loadMedia(project.id);
+    return () => {
+      reset();
+      usePlaybackStore.getState().reset();
+    };
   }, [project?.id, loadTimeline, reset]);
+
+  const handleSeek = (ms: number) => {
+    void seekTimeline(ms);
+  };
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -142,7 +153,7 @@ export function Timeline() {
                 zoom={zoom}
                 scrollLeft={scrollLeft}
                 viewportWidth={viewportWidth}
-                onSeek={setPlayhead}
+                onSeek={handleSeek}
               />
             </div>
           </div>

@@ -43,12 +43,14 @@ def create_project_engine(project_root: Path) -> AsyncEngine:
 async def init_project_db(engine: AsyncEngine) -> None:
     from montage_backend.database_migrations import migrate_media_items_schema
     from montage_backend.models.db.media_db import MediaItemRow
+    from montage_backend.models.db.metadata_db import MediaMetadataFeatureRow
     from montage_backend.models.db.project_db import ProjectRow
     from montage_backend.models.db.timeline_db import TimelineRow
 
     tables = [
         ProjectRow.__table__,
         MediaItemRow.__table__,
+        MediaMetadataFeatureRow.__table__,
         TimelineRow.__table__,
     ]
 

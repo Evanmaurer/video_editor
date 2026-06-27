@@ -10,6 +10,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@montage/playback-engine':
+        specifier: workspace:*
+        version: link:../../packages/playback-engine
       '@montage/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -83,6 +86,12 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.0)
+
+  packages/playback-engine:
+    dependencies:
+      '@montage/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
 
   packages/shared-types: {}
 

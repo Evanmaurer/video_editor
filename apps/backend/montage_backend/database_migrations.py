@@ -11,6 +11,7 @@ MEDIA_ITEM_COLUMN_DDL: dict[str, str] = {
     "proxy_status": "TEXT NOT NULL DEFAULT 'pending'",
     "waveform_status": "TEXT NOT NULL DEFAULT 'pending'",
     "scene_status": "TEXT NOT NULL DEFAULT 'pending'",
+    "metadata_status": "TEXT NOT NULL DEFAULT 'pending'",
     "tags_json": "TEXT NOT NULL DEFAULT '[]'",
     "is_favorite": "INTEGER NOT NULL DEFAULT 0",
 }

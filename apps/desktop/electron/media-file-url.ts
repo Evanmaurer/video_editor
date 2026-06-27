@@ -9,5 +9,13 @@ export function pathToMontageFileUrl(filePath: string): string {
 
 export function montageFileUrlToPath(url: string): string {
   const parsed = new URL(url);
+  if (parsed.protocol !== "montage-file:") {
+    throw new Error(`Unsupported media URL: ${url}`);
+  }
+
+  if (parsed.hostname) {
+    return decodeURIComponent(`/${parsed.hostname}${parsed.pathname}`);
+  }
+
   return decodeURIComponent(parsed.pathname);
 }

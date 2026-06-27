@@ -59,6 +59,7 @@ class MediaRepository:
             proxy_status=ProcessingStatus(row.proxy_status),
             waveform_status=ProcessingStatus(row.waveform_status),
             scene_status=ProcessingStatus(row.scene_status),
+            metadata_status=ProcessingStatus(row.metadata_status),
             tags=tags,
             is_favorite=bool(row.is_favorite),
             import_status=ImportStatus(row.import_status),
@@ -93,6 +94,7 @@ class MediaRepository:
         row.proxy_status = media.proxy_status.value
         row.waveform_status = media.waveform_status.value
         row.scene_status = media.scene_status.value
+        row.metadata_status = media.metadata_status.value
         row.tags_json = json.dumps(media.tags)
         row.is_favorite = 1 if media.is_favorite else 0
         row.import_status = media.import_status.value
@@ -198,6 +200,7 @@ class MediaRepository:
             proxy_status=media.proxy_status.value,
             waveform_status=media.waveform_status.value,
             scene_status=media.scene_status.value,
+            metadata_status=media.metadata_status.value,
             tags_json=json.dumps(media.tags),
             is_favorite=1 if media.is_favorite else 0,
             import_status=media.import_status.value,

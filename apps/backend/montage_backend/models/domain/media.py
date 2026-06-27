@@ -67,6 +67,10 @@ class ProcessingCancelledError(MontageError):
     code = "PROCESSING_CANCELLED"
 
 
+class ProcessingPausedError(MontageError):
+    code = "PROCESSING_PAUSED"
+
+
 class CorruptMediaError(MontageError):
     code = "CORRUPT_MEDIA"
 
@@ -128,6 +132,7 @@ class MediaItem(BaseModel):
     proxy_status: ProcessingStatus = ProcessingStatus.PENDING
     waveform_status: ProcessingStatus = ProcessingStatus.PENDING
     scene_status: ProcessingStatus = ProcessingStatus.PENDING
+    metadata_status: ProcessingStatus = ProcessingStatus.PENDING
     tags: list[str] = Field(default_factory=list)
     is_favorite: bool = False
     import_status: ImportStatus = ImportStatus.PENDING
@@ -201,6 +206,7 @@ def new_media_item(
         proxy_status=ProcessingStatus.PENDING,
         waveform_status=ProcessingStatus.PENDING,
         scene_status=ProcessingStatus.PENDING,
+        metadata_status=ProcessingStatus.PENDING,
         created_at=now,
         updated_at=now,
     )

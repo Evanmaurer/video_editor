@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
 from montage_backend import __version__
-from montage_backend.api.deps import get_media_service, get_project_service, get_settings_service
+from montage_backend.api.deps import get_media_service, get_project_service, get_render_service, get_settings_service
 from montage_backend.media.ffmpeg_tools import detect_ffmpeg
 from montage_backend.api.exception_handlers import (
     montage_error_handler,
@@ -48,6 +48,16 @@ async def lifespan(app: FastAPI):
         print(json.dumps(ready), flush=True)
 
     yield
+    from montage_backend.api.deps import get_playback_service, get_render_service
+
+    try:
+        await get_playback_service().shutdown()
+    except Exception:
+        logger.exception("playback_shutdown_failed")
+    try:
+        await get_render_service().shutdown()
+    except Exception:
+        logger.exception("render_shutdown_failed")
     await db_manager.shutdown()
     logger.info("backend_stopped")
 
@@ -82,6 +92,7 @@ async def health() -> dict[str, object]:
     gpu = project_service.get_gpu_info(app_settings.gpu_enabled)
     ai_status = await llm_service.get_status()
     media_service = get_media_service()
+    render_service = get_render_service()
     ffmpeg = detect_ffmpeg(
         media_service.processor.runner.ffmpeg_bin,
         media_service.processor.runner.ffprobe_bin,
@@ -89,9 +100,10 @@ async def health() -> dict[str, object]:
     return {
         "status": "ok",
         "version": __version__,
-        "features": ["media_library"],
+        "features": ["media_library", "playback", "export", "metadata"],
         "models_loaded": False,
         "queue_depth": media_service.queue.active_count,
+        "export_queue_depth": render_service.queue_depth,
         "ffmpeg_available": ffmpeg.available,
         "ffmpeg_note": ffmpeg.message,
         "gpu_available": gpu.available,
@@ -107,6 +119,9 @@ async def ready() -> dict[str, str]:
     return {"status": "ready"}
 
 
+from montage_backend.ws.hub import ws_hub
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket) -> None:
     token = websocket.query_params.get("token")
@@ -114,11 +129,14 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         await websocket.close(code=1008)
         return
     await websocket.accept()
+    await ws_hub.connect(websocket)
     try:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
         pass
+    finally:
+        await ws_hub.disconnect(websocket)
 
 
 def _find_free_port(host: str) -> int:

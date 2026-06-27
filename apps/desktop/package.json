@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
+    "@montage/playback-engine": "workspace:*",
     "@montage/shared-types": "workspace:*",
     "@montage/timeline-engine": "workspace:*",
     "react": "^18.3.1",

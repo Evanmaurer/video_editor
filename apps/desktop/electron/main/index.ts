@@ -1,8 +1,8 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, protocol, shell } from "electron";
 import { join } from "path";
-import { pathToFileURL } from "url";
 import { resolveImportPaths } from "../media-import";
-import { montageFileUrlToPath } from "../media-file-url";
+import { handleMontageFileRequest } from "../media-protocol";
+import { resolvePlaybackVideoUrl } from "../media-playback-url";
 import { readImageDataUrl } from "../thumbnail-data-url";
 import { BackendManager } from "./backend-manager";
 import { registerBackendRequestHandler } from "./backend-request";
@@ -70,15 +70,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
-  protocol.handle("montage-file", async (request) => {
-    try {
-      const filePath = montageFileUrlToPath(request.url);
-      return await net.fetch(pathToFileURL(filePath).toString());
-    } catch (err) {
-      console.error("[montage-file] Failed to resolve", request.url, err);
-      return new Response("Not Found", { status: 404 });
-    }
-  });
+  protocol.handle("montage-file", (request) => handleMontageFileRequest(request));
 
   let backendStartError: string | null = null;
 
@@ -171,6 +163,13 @@ ipcMain.handle("import:resolvePaths", (_event, paths: string[]) => {
 ipcMain.handle("media:getThumbnailDataUrl", async (_event, filePath: string) => {
   return readImageDataUrl(filePath);
 });
+
+ipcMain.handle(
+  "media:getPlaybackVideoUrl",
+  (_event, filePath: string, proxyPath: string | null) => {
+    return resolvePlaybackVideoUrl(filePath, proxyPath);
+  },
+);
 
 ipcMain.handle("shell:revealInFolder", (_event, filePath: string) => {
   shell.showItemInFolder(filePath);

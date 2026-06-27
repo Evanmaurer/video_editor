@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from montage_backend.jobs.import_queue import ImportJobQueue
@@ -49,6 +50,7 @@ class MediaService:
         self._queue = ImportJobQueue(max_workers=worker_count)
         self._active_contexts: dict[str, ProcessingContext] = {}
         self._import_tasks: dict[str, asyncio.Task[None]] = {}
+        self._metadata_enqueue: Callable[[str, str], Awaitable[None]] | None = None
 
     @property
     def processor(self) -> MediaProcessor:
@@ -60,6 +62,28 @@ class MediaService:
 
     def set_worker_count(self, worker_count: int) -> None:
         self._queue.set_max_workers(worker_count)
+
+    def set_metadata_enqueue(
+        self,
+        callback: Callable[[str, str], Awaitable[None]] | None,
+    ) -> None:
+        self._metadata_enqueue = callback
+
+    async def update_metadata_status(
+        self,
+        project_id: str,
+        media_id: str,
+        status: ProcessingStatus,
+    ) -> None:
+        project = await self._project_service.get_project(project_id)
+        session_factory = await self._project_service._ensure_project_db(Path(project.root_path))
+        async with session_factory() as session:
+            media = await self._repo.get_by_id(session, media_id)
+            if media is None or media.project_id != project_id:
+                return
+            media.metadata_status = status
+            media.updated_at = utc_now_iso()
+            await self._repo.update(session, media)
 
     async def import_files(
         self,
@@ -306,6 +330,8 @@ class MediaService:
                 await self._repo.update(session, media)
 
             logger.info("media_import_complete", media_id=media_id)
+            if self._metadata_enqueue is not None:
+                await self._metadata_enqueue(media.project_id, media_id)
         except ProcessingCancelledError:
             await self._mark_error(
                 session_factory,
@@ -353,6 +379,7 @@ class MediaService:
             media.proxy_status = processing_status
             media.waveform_status = processing_status
             media.scene_status = processing_status
+            media.metadata_status = processing_status
             media.updated_at = utc_now_iso()
             await self._repo.update(session, media)
 
