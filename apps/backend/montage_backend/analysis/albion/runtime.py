@@ -10,7 +10,12 @@ from montage_backend.analysis.albion.base import (
     AlbionDetectorProgress,
 )
 from montage_backend.analysis.albion.detectors.framework_probe import FrameworkProbeDetector
+from montage_backend.analysis.albion.detectors.ocr_detector import AlbionOcrDetector
 from montage_backend.analysis.albion.registry import AlbionDetectorRegistry
+
+
+async def _noop_progress(_progress: AlbionDetectorProgress) -> None:
+    return None
 
 
 class AlbionAnalysisEngine:
@@ -119,19 +124,22 @@ class AlbionAnalysisEngine:
                         await result
 
             ctx.bind_progress(detector_progress)
-            await detector.initialize(ctx)
-            ctx.check_cancelled()
-            output = await detector.analyze(
-                ctx,
-                video_path=video_path,
-                duration_ms=duration_ms,
-                frame_rate=frame_rate,
-            )
-            detector_results[detector_id] = output
-            if on_incremental is not None:
-                result = on_incremental(dict(detector_results))
-                if result is not None:
-                    await result
+            try:
+                await detector.initialize(ctx)
+                ctx.check_cancelled()
+                output = await detector.analyze(
+                    ctx,
+                    video_path=video_path,
+                    duration_ms=duration_ms,
+                    frame_rate=frame_rate,
+                )
+                detector_results[detector_id] = output
+                if on_incremental is not None:
+                    result = on_incremental(dict(detector_results))
+                    if result is not None:
+                        await result
+            finally:
+                ctx.bind_progress(parent_callback if parent_callback is not None else _noop_progress)
 
         return build_albion_analysis_result(
             cache_key=self.composite_cache_key(ctx.source_fingerprint, frame_rate=frame_rate),
@@ -145,4 +153,5 @@ class AlbionAnalysisEngine:
 def build_default_albion_registry() -> AlbionDetectorRegistry:
     registry = AlbionDetectorRegistry()
     registry.register(FrameworkProbeDetector())
+    registry.register(AlbionOcrDetector())
     return registry

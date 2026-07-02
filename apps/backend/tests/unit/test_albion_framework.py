@@ -17,7 +17,21 @@ from montage_backend.analysis.base import AnalysisModuleId
 from montage_backend.analysis.modules.albion import AlbionAnalyzer
 from montage_backend.analysis.registry import AnalyzerRegistry
 from montage_backend.models.domain.analysis import AnalysisCancelledError
+from montage_backend.analysis.ocr.engine import OcrEngine, RawOcrDetection
+from montage_backend.analysis.ocr_analysis import build_ocr_analysis_result
 from montage_backend.services.analysis_service import build_default_registry
+
+
+class FakeOcrEngineForFramework(OcrEngine):
+    engine_id = "fake"
+    version = "test-1.0"
+
+    def is_available(self) -> bool:
+        return True
+
+    def recognize_png(self, png_bytes: bytes) -> list[RawOcrDetection]:
+        _ = png_bytes
+        return [RawOcrDetection(text="842k", confidence=0.9)]
 
 
 @pytest.mark.asyncio
@@ -93,16 +107,33 @@ async def test_albion_detector_context_cancel():
 
 @pytest.mark.asyncio
 async def test_albion_analysis_engine_runs_registered_detectors():
+    from montage_backend.analysis.ocr_analysis import raw_to_detection
+
+    engine = FakeOcrEngineForFramework()
+    m3 = build_ocr_analysis_result(
+        analyzer_version="ocr-analyzer-v1.0",
+        cache_key="ocr:engine-test",
+        duration_ms=3000,
+        frame_rate=30.0,
+        sample_interval_ms=1500,
+        frames_sampled=2,
+        engine=engine,
+        detections=[
+            raw_to_detection(raw, timestamp_ms=0, frame_rate=30.0)
+            for raw in engine.recognize_png(b"")
+        ],
+    )
     registry = build_default_albion_registry()
-    engine = AlbionAnalysisEngine(registry)
+    analysis_engine = AlbionAnalysisEngine(registry)
     ctx = AlbionDetectorContext(
         project_id="p1",
         media_id="m1",
         source_fingerprint="fp-engine",
         gpu_enabled=False,
+        extras={"ocr_analysis": m3.model_dump(mode="json")},
     )
 
-    result = await engine.analyze(
+    result = await analysis_engine.analyze(
         ctx,
         video_path="/tmp/fake.mp4",
         duration_ms=8000,
@@ -110,10 +141,11 @@ async def test_albion_analysis_engine_runs_registered_detectors():
     )
     assert isinstance(result, AlbionAnalysisResult)
     assert result.analyzer_version == ALBION_FRAMEWORK_VERSION
-    assert result.summary.detector_count == 1
-    assert result.summary.event_count == 1
+    assert result.summary.detector_count == 2
+    assert result.summary.event_count >= 1
     assert "framework_probe" in result.detector_results
-    assert engine.is_cache_valid(
+    assert "ocr" in result.detector_results
+    assert analysis_engine.is_cache_valid(
         ALBION_FRAMEWORK_VERSION,
         result.cache_key,
         "fp-engine",
@@ -123,7 +155,8 @@ async def test_albion_analysis_engine_runs_registered_detectors():
 
 @pytest.mark.asyncio
 async def test_albion_analysis_engine_reuses_valid_detector_cache():
-    registry = build_default_albion_registry()
+    registry = AlbionDetectorRegistry()
+    registry.register(FrameworkProbeDetector())
     engine = AlbionAnalysisEngine(registry)
     detector = registry.get(AlbionDetectorId.FRAMEWORK_PROBE)
     cache_key = detector.cache_key("fp-cache", frame_rate=60.0)
@@ -200,9 +233,11 @@ def test_albion_analyzer_cache_key_includes_detector_versions():
     key = analyzer.cache_key("fp-1", frame_rate=60.0)
     assert key.startswith(ALBION_FRAMEWORK_VERSION)
     assert "framework_probe" in key
+    assert "ocr" in key
 
 
 def test_default_albion_registry_lists_framework_probe():
     registry = build_default_albion_registry()
-    assert registry.list_detectors() == ["framework_probe"]
+    assert registry.list_detectors() == ["framework_probe", "ocr"]
     assert registry.detector_versions()["framework_probe"] == "framework-probe-v1.0"
+    assert registry.detector_versions()["ocr"] == "albion-ocr-v1.0"

@@ -8,9 +8,9 @@
 
 **Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** M5-001 — User Interface Recognition (not started)
+**Current sub-milestone:** M5-003 — Ability Recognition (not started)
 
-**Completed this session:** M5-000 Albion Detection Framework
+**Completed this session:** M5-002 OCR Pipeline
 
 ---
 
@@ -138,11 +138,20 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
   - `GET .../analysis/albion/detectors`
 - [x] **Tests:** 10 unit tests + integration API tests
 
+### M5-002 — OCR Pipeline (2026-06-27)
+- [x] **`AlbionOcrCategory` taxonomy** — player names, guild/alliance tags, damage/healing numbers, zones, abilities, kill/death/loot messages
+- [x] **Rule-based classifier** — configurable ability and zone lexicons (`lexicon.py`) replaceable by future ML models
+- [x] **`AlbionOcrDetector` plugin** — reclassifies cached M3 OCR when available; otherwise runs live OCR with GPU-aware engine resolution
+- [x] **Per-frame-window cache** — every sampled window stores `cache_key`, detections, and engine metadata in `frame_windows`
+- [x] **M3 OCR reuse** — avoids duplicate OCR when `ocr_analysis` cache is present in Albion context
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/ocr`
+- [x] **Tests:** 9 unit tests + integration API test
+
 ---
 
 ## Work In Progress
 
-None — M5-000 complete; ready for M5-001.
+None — M5-002 complete; ready for M5-003.
 
 ---
 
@@ -152,7 +161,7 @@ None — M5-000 complete; ready for M5-001.
 |----|--------|--------|
 | M5-000 | Albion Detection Framework | **Complete** |
 | M5-001 | User Interface Recognition | Not started |
-| M5-002 | OCR Pipeline | Not started |
+| M5-002 | OCR Pipeline | **Complete** |
 | M5-003 | Ability Recognition | Not started |
 | M5-004 | Combat Timeline | Not started |
 | M5-005 | Bomb Event Detection | Not started |
@@ -188,7 +197,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **M5-001 — User Interface Recognition** (party frames, health bars, minimap, kill notifications, etc.)
+1. **M5-003 — Ability Recognition** (configurable ability detection and cooldown tracking)
 
 ---
 
@@ -196,8 +205,8 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M5 in progress** (1/10 sub-milestones) |
-| Backend tests | 240+ |
+| Milestone | **M5 in progress** (2/10 sub-milestones) |
+| Backend tests | 250+ |
 | Open P0 bugs | 0 |
 
 ---
@@ -218,3 +227,4 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 | 2026-06-27 | M4-008 | Timeline generator, montage plan to editable timeline apply with overwrite protection |
 | 2026-06-27 | M4-009 | AI feedback loop, quality estimates, user feedback actions, preference-driven regeneration |
 | 2026-06-27 | M5-000 | Albion detection framework, plugin registry, M3 integration, framework probe detector |
+| 2026-06-27 | M5-002 | Albion OCR pipeline, per-window cache, M3 OCR reclassification, typed OCR API |

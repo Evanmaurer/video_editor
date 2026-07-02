@@ -22,6 +22,7 @@ from montage_backend.jobs.analysis_queue import AnalysisJobQueue, AnalysisQueueI
 from montage_backend.logging import get_logger
 from montage_backend.media.cache import source_fingerprint
 from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
+from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
 from montage_backend.analysis.audio_analysis import AudioAnalysisResult
 from montage_backend.analysis.motion_analysis import MotionAnalysisResult
 from montage_backend.analysis.embedding.engine import resolve_embedding_engine
@@ -410,6 +411,19 @@ class AnalysisService:
         if cache is None or cache.status != ProcessingStatus.READY:
             return None
         return AlbionAnalysisResult.model_validate(cache.payload)
+
+    async def get_albion_ocr_analysis(
+        self,
+        project_id: str,
+        media_id: str,
+    ) -> AlbionOcrAnalysisResult | None:
+        albion = await self.get_albion_analysis(project_id, media_id)
+        if albion is None:
+            return None
+        ocr_result = albion.detector_results.get("ocr")
+        if ocr_result is None or not ocr_result.payload:
+            return None
+        return AlbionOcrAnalysisResult.model_validate(ocr_result.payload)
 
     async def get_clip_analysis(
         self,
