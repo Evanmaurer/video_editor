@@ -8,9 +8,9 @@
 
 **Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** M5-006 — Engagement Classification (not started)
+**Current sub-milestone:** M5-008 — Search Engine (not started)
 
-**Completed this session:** M5-005 Bomb Event Detection
+**Completed this session:** M5-007 Highlight Ranking
 
 ---
 
@@ -183,11 +183,30 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
 - [x] **API:** `GET .../media/{media_id}/analysis/albion/bombs`
 - [x] **Tests:** 9 unit tests + integration API test
 
+### M5-006 — Engagement Classification (2026-06-27)
+- [x] **`AlbionEngagementConfig`** — engagement thresholds + type rules from `ai/plugins/albion/engagement/`
+- [x] **`AlbionEngagementDetector` plugin** — classifies clips with ZvZ, ganking, gathering, roaming, dungeon, and open-world PvP tags
+- [x] **Multi-tag support** — multiple engagement types per clip with confidence, score, reasoning, and `search_text`
+- [x] **Sibling detector reuse** — fuses combat timeline, bomb events, UI, Albion OCR, and M3 motion signals
+- [x] **Per-frame-window cache** — `frame_windows[].cache_key` per sampled window
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/engagement`
+- [x] **Tests:** 9 unit tests + integration API test
+
+### M5-007 — Highlight Ranking (2026-06-27)
+- [x] **`AlbionHighlightConfig`** — 12 weighted scoring factors from `ai/plugins/albion/highlights/`
+- [x] **`AlbionHighlightDetector` plugin** — Albion-specific clip highlight score (0–100) with ranked moments
+- [x] **Factor fusion** — bomb quality, kills, team fight intensity, survival, damage/healing spikes, visual clarity, motion, audio, fight duration, OCR, abilities
+- [x] **Human-readable explanation** — top contributing factors summarized per clip
+- [x] **Sibling detector reuse** — fuses combat, bomb, engagement, ability, UI, OCR, and M3 motion/audio
+- [x] **Per-frame-window cache** — `frame_windows[].cache_key` per sampled window
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/highlights`
+- [x] **Tests:** 8 unit tests + integration API test
+
 ---
 
 ## Work In Progress
 
-None — M5-005 complete; ready for M5-006.
+None — M5-007 complete; ready for M5-008.
 
 ---
 
@@ -201,8 +220,8 @@ None — M5-005 complete; ready for M5-006.
 | M5-003 | Ability Recognition | **Complete** |
 | M5-004 | Combat Timeline | **Complete** |
 | M5-005 | Bomb Event Detection | **Complete** |
-| M5-006 | Engagement Classification | Not started |
-| M5-007 | Highlight Ranking | Not started |
+| M5-006 | Engagement Classification | **Complete** |
+| M5-007 | Highlight Ranking | **Complete** |
 | M5-008 | Search Engine | Not started |
 | M5-009 | Timeline Annotation | Not started |
 
@@ -233,7 +252,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **M5-006 — Engagement Classification** (ZvZ, ganking, gathering tags per clip)
+1. **M5-008 — Search Engine** (cached metadata search with engagement/kill/ability filters)
 
 ---
 
@@ -241,7 +260,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M5 in progress** (6/10 sub-milestones) |
+| Milestone | **M5 in progress** (8/10 sub-milestones) |
 | Backend tests | 250+ |
 | Open P0 bugs | 0 |
 

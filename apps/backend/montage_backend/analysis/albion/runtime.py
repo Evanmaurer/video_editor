@@ -13,6 +13,8 @@ from montage_backend.analysis.albion.detectors.framework_probe import FrameworkP
 from montage_backend.analysis.albion.detectors.ability_detector import AlbionAbilityDetector
 from montage_backend.analysis.albion.detectors.bomb_detector import AlbionBombDetector
 from montage_backend.analysis.albion.detectors.combat_detector import AlbionCombatDetector
+from montage_backend.analysis.albion.detectors.engagement_detector import AlbionEngagementDetector
+from montage_backend.analysis.albion.detectors.highlight_detector import AlbionHighlightDetector
 from montage_backend.analysis.albion.detectors.ocr_detector import AlbionOcrDetector
 from montage_backend.analysis.albion.detectors.ui_detector import AlbionUiDetector
 from montage_backend.analysis.albion.registry import AlbionDetectorRegistry
@@ -170,4 +172,6 @@ def build_default_albion_registry() -> AlbionDetectorRegistry:
     registry.register(AlbionAbilityDetector())
     registry.register(AlbionCombatDetector())
     registry.register(AlbionBombDetector())
+    registry.register(AlbionEngagementDetector())
+    registry.register(AlbionHighlightDetector())
     return registry

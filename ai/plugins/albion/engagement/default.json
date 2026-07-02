@@ -1,0 +1,26 @@
+{
+  "id": "default",
+  "version": "1.0",
+  "engagement_min_duration_ms": 5000,
+  "sample_interval_ms": 2000,
+  "window_ms": 2000,
+  "min_tag_confidence": 0.35,
+  "zvz_min_kills": 4,
+  "zvz_min_bombs": 1,
+  "ganking_max_kills": 3,
+  "ganking_max_span_ms": 20000,
+  "gathering_max_kills": 0,
+  "gathering_max_motion_score": 0.3,
+  "dungeon_min_sustained_combat_ms": 5000,
+  "dungeon_max_kills": 4,
+  "roaming_max_kills": 0,
+  "gathering_keywords": [
+    "harvested",
+    "gathered",
+    "mining",
+    "chopped",
+    "picked",
+    "fishing",
+    "collected"
+  ]
+}

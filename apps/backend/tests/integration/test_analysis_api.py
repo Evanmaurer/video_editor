@@ -1013,6 +1013,307 @@ async def test_albion_bomb_analysis_query(client: AsyncClient, tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_albion_engagement_analysis_query(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-engagement-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-engagement.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-engagement",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-engagement.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=8000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    engagement_payload = {
+        "detector_version": "albion-engagement-v1.0",
+        "cache_key": "engagement:test",
+        "duration_ms": 8000,
+        "frame_rate": 60.0,
+        "window_ms": 2000,
+        "sample_interval_ms": 2000,
+        "config_id": "default",
+        "summary": {
+            "frames_sampled": 4,
+            "window_count": 4,
+            "tag_count": 2,
+            "primary_engagement": "zvz",
+            "sustained_combat_ms": 0,
+            "config_id": "default",
+            "signals": {
+                "kill_count": 5,
+                "death_count": 0,
+                "fight_count": 0,
+                "bomb_count": 1,
+                "sustained_combat_ms": 0,
+                "sustained_ui_ms": 0,
+                "party_frame_count": 0,
+                "resource_bar_count": 0,
+                "gathering_keyword_hits": 0,
+                "avg_motion_score": 0.0,
+                "max_motion_score": 0.0,
+            },
+            "by_engagement_type": {"zvz": 1, "open_world_pvp": 1},
+            "reused_albion_combat": True,
+            "reused_albion_bomb": True,
+            "reused_albion_ui": False,
+            "reused_albion_ocr": False,
+            "reused_motion": False,
+        },
+        "frame_windows": [],
+        "tags": [
+            {
+                "engagement_type": "zvz",
+                "confidence": 0.9,
+                "score": 9.0,
+                "reasoning": "ZvZ engagement: 5 kills, 1 bomb event(s)",
+                "search_text": "zvz zvz engagement 5 kills 1 bomb event(s)",
+                "metadata": {"kill_count": 5, "bomb_count": 1},
+            },
+            {
+                "engagement_type": "open_world_pvp",
+                "confidence": 0.8,
+                "score": 8.0,
+                "reasoning": "Open-world PvP engagement: 5 kill(s) detected",
+                "search_text": "open_world_pvp open-world pvp engagement 5 kill(s) detected",
+                "metadata": {"kill_count": 5},
+            },
+        ],
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:engagement-test",
+            status=ProcessingStatus.READY,
+            payload={
+                "analyzer_version": "albion-framework-v1.0",
+                "cache_key": "albion:engagement-test",
+                "duration_ms": 8000,
+                "frame_rate": 60.0,
+                "summary": {
+                    "detector_count": 7,
+                    "event_count": 2,
+                    "gpu_enabled": True,
+                    "detector_ids": [
+                        "framework_probe",
+                        "ui",
+                        "ocr",
+                        "ability",
+                        "combat",
+                        "bomb",
+                        "engagement",
+                    ],
+                },
+                "detector_results": {
+                    "engagement": {
+                        "detector_id": "engagement",
+                        "detector_version": "albion-engagement-v1.0",
+                        "cache_key": "albion-engagement:test",
+                        "confidence": 0.9,
+                        "reasoning": "test",
+                        "events": [],
+                        "payload": engagement_payload,
+                    },
+                },
+                "detector_caches": {},
+            },
+            source_fingerprint="fp-albion-engagement",
+            confidence=0.9,
+        )
+
+    engagement = await client.get(
+        f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion/engagement",
+    )
+    assert engagement.status_code == 200
+    body = engagement.json()
+    assert body is not None
+    assert body["detector_version"] == "albion-engagement-v1.0"
+    assert body["summary"]["tag_count"] == 2
+    assert body["summary"]["primary_engagement"] == "zvz"
+    assert len(body["tags"]) == 2
+    assert body["tags"][0]["engagement_type"] == "zvz"
+
+
+@pytest.mark.asyncio
+async def test_albion_highlight_analysis_query(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-highlight-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-highlight.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-highlight",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-highlight.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=8000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    highlight_payload = {
+        "detector_version": "albion-highlight-v1.0",
+        "cache_key": "highlight:test",
+        "duration_ms": 8000,
+        "frame_rate": 60.0,
+        "window_ms": 2000,
+        "sample_interval_ms": 2000,
+        "config_id": "default",
+        "highlight_score": 78.4,
+        "confidence": 0.86,
+        "explanation": "Albion highlight score 78.4/100. Bomb quality: Top bomb score 8.4/10.",
+        "summary": {
+            "frames_sampled": 4,
+            "window_count": 4,
+            "moment_count": 2,
+            "highlight_score": 78.4,
+            "confidence": 0.86,
+            "explanation": "Albion highlight score 78.4/100. Bomb quality: Top bomb score 8.4/10.",
+            "config_id": "default",
+            "factor_count": 12,
+            "top_factor_ids": ["bomb_quality", "kill_count"],
+            "by_moment_type": {"bomb": 1, "kill": 1},
+            "reused_albion_combat": True,
+            "reused_albion_bomb": True,
+            "reused_albion_engagement": True,
+            "reused_albion_ability": False,
+            "reused_albion_ocr": False,
+            "reused_albion_ui": False,
+            "reused_motion": False,
+            "reused_audio": False,
+        },
+        "factors": [
+            {
+                "factor_id": "bomb_quality",
+                "label": "Bomb quality",
+                "score": 0.84,
+                "weight": 0.14,
+                "contribution": 11.8,
+                "reasoning": "Top bomb score 8.4/10",
+            }
+        ],
+        "frame_windows": [],
+        "moments": [
+            {
+                "moment_id": "highlight:bomb:4000:0",
+                "timestamp_ms": 4000,
+                "window_start_ms": 3500,
+                "window_end_ms": 4500,
+                "moment_score": 84.0,
+                "confidence": 0.86,
+                "moment_type": "bomb",
+                "reasoning": "Bomb detected",
+                "search_text": "highlight bomb",
+                "metadata": {"kill_count": 5},
+            }
+        ],
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:highlight-test",
+            status=ProcessingStatus.READY,
+            payload={
+                "analyzer_version": "albion-framework-v1.0",
+                "cache_key": "albion:highlight-test",
+                "duration_ms": 8000,
+                "frame_rate": 60.0,
+                "summary": {
+                    "detector_count": 8,
+                    "event_count": 2,
+                    "gpu_enabled": True,
+                    "detector_ids": [
+                        "framework_probe",
+                        "ui",
+                        "ocr",
+                        "ability",
+                        "combat",
+                        "bomb",
+                        "engagement",
+                        "highlight",
+                    ],
+                },
+                "detector_results": {
+                    "highlight": {
+                        "detector_id": "highlight",
+                        "detector_version": "albion-highlight-v1.0",
+                        "cache_key": "albion-highlight:test",
+                        "confidence": 0.86,
+                        "reasoning": "test",
+                        "events": [],
+                        "payload": highlight_payload,
+                    },
+                },
+                "detector_caches": {},
+            },
+            source_fingerprint="fp-albion-highlight",
+            confidence=0.86,
+        )
+
+    highlights = await client.get(
+        f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion/highlights",
+    )
+    assert highlights.status_code == 200
+    body = highlights.json()
+    assert body is not None
+    assert body["detector_version"] == "albion-highlight-v1.0"
+    assert body["highlight_score"] == 78.4
+    assert "Albion highlight score" in body["explanation"]
+    assert body["summary"]["factor_count"] == 12
+    assert body["moments"][0]["moment_type"] == "bomb"
+
+
+@pytest.mark.asyncio
 async def test_scene_analysis_run_and_query(client: AsyncClient, tmp_path, monkeypatch):
     project_root = tmp_path / "analysis-project"
     project_id = await _create_project(client, project_root)

@@ -266,15 +266,37 @@ curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis
 
 ---
 
-### M5-006 — Engagement Classification *(not started)*
+### M5-006 — Engagement Classification
+
+```bash
+python3 -m pytest tests/unit/test_albion_engagement_classification.py -v
+curl -X POST "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/run"
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/engagement"
+```
 
 **Pass if:** clips tagged with engagement types (ZvZ, ganking, gathering, etc.); multiple tags per clip supported.
 
+**Broken if:** `null` after a successful albion run that includes the `engagement` detector, missing `tags`/`primary_engagement` on clips with combat signals, or only one tag when both ZvZ and open-world PvP signals are present.
+
+**Note:** on real ZvZ clips with kill spikes and bombs, expect `zvz` as primary plus additional tags such as `open_world_pvp`.
+
 ---
 
-### M5-007 — Highlight Ranking *(not started)*
+### M5-007 — Highlight Ranking
+
+```bash
+python3 -m pytest tests/unit/test_albion_highlight_ranking.py -v
+curl -X POST "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/run" \
+  -H "X-Montage-Token: montage-dev-token"
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/highlights" \
+  -H "X-Montage-Token: montage-dev-token"
+```
 
 **Pass if:** each clip has an Albion-specific highlight score with a human-readable explanation.
+
+**Broken if:** `null` after a successful albion run that includes the `highlight` detector, missing `highlight_score`/`explanation`/`factors`, or no ranked `moments` when bomb/combat events exist.
+
+**Note:** on real ZvZ clips with bombs and kill spikes, expect a high `highlight_score` driven by `bomb_quality` and `kill_count` factors.
 
 ---
 

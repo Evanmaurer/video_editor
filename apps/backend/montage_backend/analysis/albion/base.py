@@ -20,6 +20,8 @@ class AlbionDetectorId(str, Enum):
     ABILITY = "ability"
     COMBAT = "combat"
     BOMB = "bomb"
+    ENGAGEMENT = "engagement"
+    HIGHLIGHT = "highlight"
 
 
 class AlbionDetectorProgress(BaseModel):

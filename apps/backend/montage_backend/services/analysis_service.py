@@ -24,6 +24,8 @@ from montage_backend.media.cache import source_fingerprint
 from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
 from montage_backend.analysis.albion.ability.albion_ability_analysis import AlbionAbilityAnalysisResult
 from montage_backend.analysis.albion.bomb.albion_bomb_analysis import AlbionBombAnalysisResult
+from montage_backend.analysis.albion.engagement.albion_engagement_analysis import AlbionEngagementAnalysisResult
+from montage_backend.analysis.albion.highlight.albion_highlight_analysis import AlbionHighlightAnalysisResult
 from montage_backend.analysis.albion.combat.albion_combat_analysis import AlbionCombatAnalysisResult
 from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
 from montage_backend.analysis.albion.ui.albion_ui_analysis import AlbionUiAnalysisResult
@@ -480,6 +482,32 @@ class AnalysisService:
         if bomb_result is None or not bomb_result.payload:
             return None
         return AlbionBombAnalysisResult.model_validate(bomb_result.payload)
+
+    async def get_albion_engagement_analysis(
+        self,
+        project_id: str,
+        media_id: str,
+    ) -> AlbionEngagementAnalysisResult | None:
+        albion = await self.get_albion_analysis(project_id, media_id)
+        if albion is None:
+            return None
+        engagement_result = albion.detector_results.get("engagement")
+        if engagement_result is None or not engagement_result.payload:
+            return None
+        return AlbionEngagementAnalysisResult.model_validate(engagement_result.payload)
+
+    async def get_albion_highlight_analysis(
+        self,
+        project_id: str,
+        media_id: str,
+    ) -> AlbionHighlightAnalysisResult | None:
+        albion = await self.get_albion_analysis(project_id, media_id)
+        if albion is None:
+            return None
+        highlight_result = albion.detector_results.get("highlight")
+        if highlight_result is None or not highlight_result.payload:
+            return None
+        return AlbionHighlightAnalysisResult.model_validate(highlight_result.payload)
 
     async def get_clip_analysis(
         self,

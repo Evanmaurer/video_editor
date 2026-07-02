@@ -246,7 +246,7 @@ async def test_albion_bomb_detector_uses_inline_combat_results():
 
 def test_default_albion_registry_includes_bomb_detector():
     registry = build_default_albion_registry()
-    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability", "combat", "bomb"]
+    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability", "combat", "bomb", "engagement", "highlight"]
     assert registry.detector_versions()["bomb"] == "albion-bomb-v1.0"
     assert "config=" in build_detector_cache_key(
         "fp",

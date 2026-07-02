@@ -195,7 +195,7 @@ async def test_albion_ability_detector_uses_inline_ocr_results():
 
 def test_default_albion_registry_includes_ability_detector():
     registry = build_default_albion_registry()
-    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability", "combat", "bomb"]
+    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability", "combat", "bomb", "engagement", "highlight"]
     assert registry.detector_versions()["ability"] == "albion-ability-v1.0"
     assert "catalog=" in build_detector_cache_key(
         "fp",
