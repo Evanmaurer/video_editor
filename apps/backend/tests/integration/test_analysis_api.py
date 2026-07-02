@@ -1314,6 +1314,295 @@ async def test_albion_highlight_analysis_query(client: AsyncClient, tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_albion_search_uses_cached_metadata(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-search-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-search.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-search",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-search.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=8000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    albion_payload = {
+        "analyzer_version": "albion-framework-v1.0",
+        "cache_key": "albion:search-test",
+        "duration_ms": 8000,
+        "frame_rate": 60.0,
+        "summary": {
+            "detector_count": 8,
+            "event_count": 3,
+            "gpu_enabled": True,
+            "detector_ids": [
+                "framework_probe",
+                "ui",
+                "ocr",
+                "ability",
+                "combat",
+                "bomb",
+                "engagement",
+                "highlight",
+            ],
+        },
+        "detector_results": {
+            "combat": {
+                "detector_id": "combat",
+                "payload": {
+                    "summary": {"kill_count": 5, "death_count": 0, "fight_count": 0},
+                    "entries": [
+                        {
+                            "event_type": "kill",
+                            "timestamp_ms": 4000,
+                            "label": "Kill: Enemy",
+                            "search_text": "kill enemy",
+                            "metadata": {},
+                        },
+                    ],
+                },
+            },
+            "bomb": {
+                "detector_id": "bomb",
+                "payload": {
+                    "summary": {"bomb_count": 1, "top_bomb_score": 8.4},
+                    "events": [
+                        {
+                            "timestamp_ms": 4000,
+                            "search_text": "bomb coordinated",
+                            "bomb_score": 8.4,
+                            "kill_count": 5,
+                        },
+                    ],
+                },
+            },
+            "engagement": {
+                "detector_id": "engagement",
+                "payload": {
+                    "summary": {"primary_engagement": "zvz"},
+                    "tags": [{"engagement_type": "zvz", "score": 8.6}],
+                },
+            },
+            "ability": {
+                "detector_id": "ability",
+                "payload": {
+                    "summary": {"activation_count": 1, "ultimate_count": 1, "unique_ability_count": 1},
+                    "events": [
+                        {
+                            "ability_name": "Grovekeeper",
+                            "ability_id": "grovekeeper",
+                            "event_type": "ultimate_activation",
+                            "timestamp_ms": 3950,
+                        },
+                    ],
+                },
+            },
+            "highlight": {
+                "detector_id": "highlight",
+                "payload": {
+                    "highlight_score": 78.4,
+                    "summary": {"highlight_score": 78.4, "explanation": "test"},
+                },
+            },
+        },
+        "detector_caches": {},
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:search-test",
+            status=ProcessingStatus.READY,
+            payload=albion_payload,
+            source_fingerprint="fp-albion-search",
+            confidence=0.9,
+        )
+
+    bomb_search = await client.post(
+        f"/api/v1/projects/{project_id}/albion/search",
+        json={"query": "Show all bomb clips."},
+    )
+    assert bomb_search.status_code == 200
+    bomb_body = bomb_search.json()
+    assert bomb_body["used_cached_metadata_only"] is True
+    assert bomb_body["match_count"] == 1
+    assert bomb_body["matches"][0]["media_id"] == media.id
+
+    zvz_search = await client.post(
+        f"/api/v1/projects/{project_id}/albion/search",
+        json={"query": "Find every ZvZ fight."},
+    )
+    assert zvz_search.status_code == 200
+    assert zvz_search.json()["parsed_filters"]["engagement_types"] == ["zvz"]
+
+    ability_search = await client.post(
+        f"/api/v1/projects/{project_id}/albion/search",
+        json={"query": "Show all clips containing Grovekeeper."},
+    )
+    assert ability_search.status_code == 200
+    assert ability_search.json()["match_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_albion_timeline_annotations_from_cached_payload(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-annotation-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-annotation.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-annotation",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-annotation.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=8000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    albion_payload = {
+        "analyzer_version": "albion-framework-v1.0",
+        "cache_key": "albion:annotation-test",
+        "duration_ms": 8000,
+        "frame_rate": 60.0,
+        "summary": {"detector_count": 8, "event_count": 3},
+        "detector_results": {
+            "combat": {
+                "detector_id": "combat",
+                "payload": {
+                    "entries": [
+                        {
+                            "event_type": "kill",
+                            "timestamp_ms": 4000,
+                            "label": "Kill: Enemy",
+                            "confidence": 0.9,
+                            "metadata": {},
+                        },
+                    ],
+                },
+            },
+            "bomb": {
+                "detector_id": "bomb",
+                "payload": {
+                    "events": [
+                        {
+                            "timestamp_ms": 4000,
+                            "reasoning": "Bomb detected: 5 kills",
+                            "confidence": 0.84,
+                            "bomb_score": 8.4,
+                            "kill_count": 5,
+                        },
+                    ],
+                },
+            },
+            "ability": {
+                "detector_id": "ability",
+                "payload": {
+                    "events": [
+                        {
+                            "ability_name": "Grovekeeper",
+                            "ability_id": "grovekeeper",
+                            "event_type": "ultimate_activation",
+                            "timestamp_ms": 3950,
+                            "confidence": 0.8,
+                        },
+                    ],
+                },
+            },
+            "engagement": {
+                "detector_id": "engagement",
+                "payload": {
+                    "summary": {"primary_engagement": "zvz"},
+                },
+            },
+            "highlight": {
+                "detector_id": "highlight",
+                "payload": {
+                    "highlight_score": 78.4,
+                    "explanation": "Strong ZvZ bomb.",
+                    "moments": [{"timestamp_ms": 4000, "moment_type": "bomb"}],
+                },
+            },
+        },
+        "detector_caches": {},
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:annotation-test",
+            status=ProcessingStatus.READY,
+            payload=albion_payload,
+            source_fingerprint="fp-albion-annotation",
+            confidence=0.9,
+        )
+
+    annotations = await client.get(
+        f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion/annotations",
+    )
+    assert annotations.status_code == 200
+    body = annotations.json()
+    assert body is not None
+    assert body["engine_version"] == "albion-annotation-v1.0"
+    assert body["summary"]["marker_count"] >= 3
+    marker_types = {marker["marker_type"] for marker in body["markers"]}
+    assert "kill" in marker_types
+    assert "bomb" in marker_types
+    assert "ability" in marker_types
+    bomb = next(marker for marker in body["markers"] if marker["marker_type"] == "bomb")
+    assert bomb["seek_ms"] == 4000
+    assert bomb["color"] == "#e74c3c"
+
+
+@pytest.mark.asyncio
 async def test_scene_analysis_run_and_query(client: AsyncClient, tmp_path, monkeypatch):
     project_root = tmp_path / "analysis-project"
     project_id = await _create_project(client, project_root)

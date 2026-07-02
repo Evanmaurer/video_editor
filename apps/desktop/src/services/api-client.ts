@@ -15,6 +15,7 @@ import type {
   RenderJobSummary,
   RenderLogResponse,
   RenderPresetInfo,
+  AlbionTimelineAnnotationResult,
   MetadataFeatureKey,
   MetadataFeatureRecord,
   MediaMetadataSummary,
@@ -321,6 +322,16 @@ export class MontageApiClient {
       "PUT",
       `/api/v1/projects/${projectId}/media/${mediaId}/metadata/${featureKey}`,
       data,
+    );
+  }
+
+  async getAlbionTimelineAnnotations(
+    projectId: string,
+    mediaId: string,
+  ): Promise<AlbionTimelineAnnotationResult | null> {
+    return this.request(
+      "GET",
+      `/api/v1/projects/${projectId}/media/${mediaId}/analysis/albion/annotations`,
     );
   }
 }

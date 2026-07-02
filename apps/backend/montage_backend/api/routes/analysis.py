@@ -17,6 +17,8 @@ from montage_backend.analysis.albion.ability.albion_ability_analysis import Albi
 from montage_backend.analysis.albion.bomb.albion_bomb_analysis import AlbionBombAnalysisResult
 from montage_backend.analysis.albion.engagement.albion_engagement_analysis import AlbionEngagementAnalysisResult
 from montage_backend.analysis.albion.highlight.albion_highlight_analysis import AlbionHighlightAnalysisResult
+from montage_backend.analysis.albion.search.albion_search_analysis import AlbionSearchRequest, AlbionSearchResponse
+from montage_backend.analysis.albion.annotation.albion_timeline_annotation import AlbionTimelineAnnotationResult
 from montage_backend.analysis.albion.combat.albion_combat_analysis import AlbionCombatAnalysisResult
 from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
 from montage_backend.analysis.albion.ui.albion_ui_analysis import AlbionUiAnalysisResult
@@ -333,6 +335,30 @@ async def get_albion_highlight_analysis(
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AlbionHighlightAnalysisResult | None:
     return await service.get_albion_highlight_analysis(project_id, media_id)
+
+
+@router.post(
+    "/{project_id}/albion/search",
+    response_model=AlbionSearchResponse,
+)
+async def search_albion_clips(
+    project_id: str,
+    request: AlbionSearchRequest,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AlbionSearchResponse:
+    return await service.search_albion_clips(project_id, request)
+
+
+@router.get(
+    "/{project_id}/media/{media_id}/analysis/albion/annotations",
+    response_model=AlbionTimelineAnnotationResult | None,
+)
+async def get_albion_timeline_annotations(
+    project_id: str,
+    media_id: str,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AlbionTimelineAnnotationResult | None:
+    return await service.get_albion_timeline_annotations(project_id, media_id)
 
 
 @router.get(

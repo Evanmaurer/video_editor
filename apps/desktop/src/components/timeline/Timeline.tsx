@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import type { MediaItem } from "@montage/shared-types";
+import type { AlbionTimelineAnnotationResult, MediaItem } from "@montage/shared-types";
 import { useMediaStore } from "@/stores/media-store";
 import { useProjectStore } from "@/stores/project-store";
 import { usePlaybackStore } from "@/stores/playback-store";
 import { useTimelineStore } from "@/stores/timeline-store";
 import { buildAddClipFromMediaCommand } from "@/services/timeline-actions";
+import { getApiClient } from "@/services/api-client";
+import {
+  collectPlacedAlbionMarkers,
+  type PlacedAlbionMarker,
+  uniqueTimelineMediaIds,
+} from "@/services/albion-timeline-markers";
+import { AlbionMarkerLane } from "./AlbionMarkerLane";
 import { TimelineRuler } from "./TimelineRuler";
 import { TimelineToolbar } from "./TimelineToolbar";
 import { TimelineTrackRow } from "./TimelineTrackRow";
@@ -42,6 +49,7 @@ export function Timeline() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(800);
+  const [albionMarkers, setAlbionMarkers] = useState<PlacedAlbionMarker[]>([]);
 
   useTimelineKeyboard();
 
@@ -59,6 +67,44 @@ export function Timeline() {
       usePlaybackStore.getState().reset();
     };
   }, [project?.id, loadTimeline, reset]);
+
+  useEffect(() => {
+    if (!project?.id || !document) {
+      setAlbionMarkers([]);
+      return;
+    }
+
+    const mediaIds = uniqueTimelineMediaIds(document);
+    if (mediaIds.length === 0) {
+      setAlbionMarkers([]);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      const client = getApiClient();
+      const annotationsByMediaId = new Map<string, AlbionTimelineAnnotationResult>();
+      await Promise.all(
+        mediaIds.map(async (mediaId) => {
+          try {
+            const annotation = await client.getAlbionTimelineAnnotations(project.id, mediaId);
+            if (annotation) {
+              annotationsByMediaId.set(mediaId, annotation);
+            }
+          } catch {
+            // Albion cache may not exist for this clip yet.
+          }
+        }),
+      );
+      if (!cancelled) {
+        setAlbionMarkers(collectPlacedAlbionMarkers(document, annotationsByMediaId));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project?.id, document]);
 
   const handleSeek = (ms: number) => {
     void seekTimeline(ms);
@@ -164,6 +210,12 @@ export function Timeline() {
             onScroll={(e) => setScrollLeft(e.currentTarget.scrollLeft)}
           >
             <div className="relative" style={{ minWidth: contentWidth + TRACK_HEADER_WIDTH }}>
+              <AlbionMarkerLane
+                markers={albionMarkers}
+                zoom={zoom}
+                onMarkerClick={handleSeek}
+              />
+
               {document.tracks.map((track) => (
                 <TimelineTrackRow
                   key={track.id}

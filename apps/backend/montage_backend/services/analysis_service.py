@@ -26,6 +26,11 @@ from montage_backend.analysis.albion.ability.albion_ability_analysis import Albi
 from montage_backend.analysis.albion.bomb.albion_bomb_analysis import AlbionBombAnalysisResult
 from montage_backend.analysis.albion.engagement.albion_engagement_analysis import AlbionEngagementAnalysisResult
 from montage_backend.analysis.albion.highlight.albion_highlight_analysis import AlbionHighlightAnalysisResult
+from montage_backend.analysis.albion.search.albion_search_analysis import AlbionSearchRequest, AlbionSearchResponse
+from montage_backend.analysis.albion.search.engine import search_albion_clips as run_albion_clip_search
+from montage_backend.analysis.albion.search.index import build_clip_search_document
+from montage_backend.analysis.albion.annotation.albion_timeline_annotation import AlbionTimelineAnnotationResult
+from montage_backend.analysis.albion.annotation.pipeline import build_timeline_markers_from_albion_payload
 from montage_backend.analysis.albion.combat.albion_combat_analysis import AlbionCombatAnalysisResult
 from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
 from montage_backend.analysis.albion.ui.albion_ui_analysis import AlbionUiAnalysisResult
@@ -508,6 +513,54 @@ class AnalysisService:
         if highlight_result is None or not highlight_result.payload:
             return None
         return AlbionHighlightAnalysisResult.model_validate(highlight_result.payload)
+
+    async def search_albion_clips(
+        self,
+        project_id: str,
+        request: AlbionSearchRequest,
+    ) -> AlbionSearchResponse:
+        from montage_backend.repositories.media_repo import MediaRepository
+
+        _, session_factory = await self._project_session(project_id)
+        media_repo = MediaRepository()
+        async with session_factory() as session:
+            media_items = await media_repo.list_by_project(session, project_id)
+
+        documents = []
+        for media in media_items:
+            cache = await self.get_module_cache(project_id, media.id, AnalysisModuleId.ALBION)
+            if cache is None or cache.status != ProcessingStatus.READY:
+                continue
+            documents.append(
+                build_clip_search_document(
+                    media_id=media.id,
+                    file_name=media.file_name,
+                    albion_payload=cache.payload,
+                ),
+            )
+
+        return run_albion_clip_search(
+            documents,
+            query=request.query,
+            explicit_filters=request.filters,
+            limit=request.limit,
+            clips_searched=len(media_items),
+        )
+
+    async def get_albion_timeline_annotations(
+        self,
+        project_id: str,
+        media_id: str,
+    ) -> AlbionTimelineAnnotationResult | None:
+        await self._ensure_media_exists(project_id, media_id)
+        cache = await self.get_module_cache(project_id, media_id, AnalysisModuleId.ALBION)
+        if cache is None or cache.status != ProcessingStatus.READY:
+            return None
+        fingerprint = cache.source_fingerprint or "unknown"
+        return build_timeline_markers_from_albion_payload(
+            source_fingerprint=fingerprint,
+            albion_payload=cache.payload,
+        )
 
     async def get_clip_analysis(
         self,

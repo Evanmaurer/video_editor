@@ -8,9 +8,9 @@
 
 **Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** M5-008 — Search Engine (not started)
+**Current sub-milestone:** M5 complete (all 10 sub-milestones)
 
-**Completed this session:** M5-007 Highlight Ranking
+**Completed this session:** M5-009 Timeline Annotation
 
 ---
 
@@ -202,11 +202,30 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
 - [x] **API:** `GET .../media/{media_id}/analysis/albion/highlights`
 - [x] **Tests:** 8 unit tests + integration API test
 
+### M5-008 — Search Engine (2026-06-27)
+- [x] **`AlbionSearchEngine`** — project-wide search over cached Albion detector metadata (no re-analysis)
+- [x] **Natural query parsing** — bomb clips, ZvZ fights, kill thresholds, fight duration, ability names
+- [x] **Structured filters** — engagement type, event type, `min_kills`, `min_fight_duration_ms`, `ability_name`
+- [x] **Ranked matches** — per-clip score, reasoning, and matched event timestamps from cache
+- [x] **API:** `POST .../projects/{project_id}/albion/search`
+- [x] **Tests:** 8 unit tests + integration API test
+
+---
+
+### M5-009 — Timeline Annotation (2026-06-27)
+- [x] **`AlbionTimelineAnnotationResult`** — bomb/kill/OCR/ability/fight/engagement/highlight/recommendation markers from cached Albion payloads
+- [x] **Marker colors** — aligned with design tokens (`#e74c3c` bomb, `#3498db` kill, `#9b59b6` ability, etc.)
+- [x] **Recommendations** — highlight score, engagement, and bomb jump suggestions
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/annotations`
+- [x] **Editor UI** — Events lane on timeline; click marker seeks via `seekTimeline()`
+- [x] **Source→timeline mapping** — `clip.start_ms + (marker.timestamp_ms - clip.source_in_ms)`
+- [x] **Tests:** 4 unit tests + integration API test + desktop mapping test
+
 ---
 
 ## Work In Progress
 
-None — M5-007 complete; ready for M5-008.
+None — M5 complete.
 
 ---
 
@@ -222,8 +241,8 @@ None — M5-007 complete; ready for M5-008.
 | M5-005 | Bomb Event Detection | **Complete** |
 | M5-006 | Engagement Classification | **Complete** |
 | M5-007 | Highlight Ranking | **Complete** |
-| M5-008 | Search Engine | Not started |
-| M5-009 | Timeline Annotation | Not started |
+| M5-008 | Search Engine | **Complete** |
+| M5-009 | Timeline Annotation | **Complete** |
 
 ---
 
@@ -252,7 +271,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **M5-008 — Search Engine** (cached metadata search with engagement/kill/ability filters)
+1. **M6 planning** — define next milestone scope after Albion detection pipeline
 
 ---
 
@@ -260,7 +279,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M5 in progress** (8/10 sub-milestones) |
+| Milestone | **M5 complete** (10/10 sub-milestones) |
 | Backend tests | 250+ |
 | Open P0 bugs | 0 |
 

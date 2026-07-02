@@ -435,3 +435,63 @@ export interface UpsertMetadataFeatureRequest {
   reasoning?: string | null;
   status?: ProcessingStatus;
 }
+
+// --- Albion timeline annotations (M5-009) ---
+
+export type AlbionTimelineMarkerType =
+  | "bomb"
+  | "kill"
+  | "ocr"
+  | "ability"
+  | "fight_start"
+  | "fight_end"
+  | "engagement"
+  | "highlight"
+  | "recommendation";
+
+export interface AlbionTimelineMarker {
+  marker_id: string;
+  marker_type: AlbionTimelineMarkerType;
+  timestamp_ms: number;
+  end_ms: number | null;
+  seek_ms: number;
+  label: string;
+  color: string;
+  confidence: number;
+  reasoning: string;
+  search_text: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface AlbionTimelineRecommendation {
+  recommendation_id: string;
+  timestamp_ms: number;
+  seek_ms: number;
+  label: string;
+  reasoning: string;
+  confidence: number;
+}
+
+export interface AlbionTimelineAnnotationSummary {
+  marker_count: number;
+  recommendation_count: number;
+  highlight_score: number | null;
+  primary_engagement: string | null;
+  by_marker_type: Record<string, number>;
+  reused_albion_combat: boolean;
+  reused_albion_bomb: boolean;
+  reused_albion_engagement: boolean;
+  reused_albion_ability: boolean;
+  reused_albion_ocr: boolean;
+  reused_albion_highlight: boolean;
+}
+
+export interface AlbionTimelineAnnotationResult {
+  engine_version: string;
+  cache_key: string;
+  duration_ms: number;
+  frame_rate: number;
+  summary: AlbionTimelineAnnotationSummary;
+  markers: AlbionTimelineMarker[];
+  recommendations: AlbionTimelineRecommendation[];
+}

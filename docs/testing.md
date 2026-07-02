@@ -300,21 +300,38 @@ curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis
 
 ---
 
-### M5-008 — Search Engine *(not started)*
+### M5-008 — Search Engine
 
 ```bash
+python3 -m pytest tests/unit/test_albion_search_engine.py -v
 curl -X POST "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/albion/search" \
   -H "Content-Type: application/json" \
+  -H "X-Montage-Token: montage-dev-token" \
   -d '{"query": "bomb clips"}'
 ```
 
 **Pass if:** search uses cached metadata only (no re-analysis); filters like engagement type, ability name, and kill count work.
 
+**Broken if:** search triggers analysis jobs, returns matches for clips without Albion cache, or fails to parse bomb/ZvZ/kill-count/ability queries from natural language.
+
+**Note:** restart backend after deploy; queries like `"Find every ZvZ fight."` and `"Show kills involving Galatine."` should populate `parsed_filters`.
+
 ---
 
-### M5-009 — Timeline Annotation *(not started)*
+### M5-009 — Timeline Annotation
+
+```bash
+cd apps/backend
+python3 -m pytest tests/unit/test_albion_timeline_annotation.py -v
+python3 -m pytest tests/integration/test_analysis_api.py::test_albion_timeline_annotations_from_cached_payload -v
+
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/annotations" \
+  -H "X-Montage-Token: montage-dev-token"
+```
 
 **Pass if:** editor timeline shows bomb/kill/ability markers; clicking a marker seeks to that moment.
+
+**Broken if:** annotations endpoint re-runs Albion analysis, markers are missing for cached bomb/kill/ability events, or click does not seek playback.
 
 ---
 
