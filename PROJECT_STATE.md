@@ -8,9 +8,9 @@
 
 **Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** M5-005 — Bomb Event Detection (not started)
+**Current sub-milestone:** M5-006 — Engagement Classification (not started)
 
-**Completed this session:** M5-004 Combat Timeline
+**Completed this session:** M5-005 Bomb Event Detection
 
 ---
 
@@ -174,11 +174,20 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
 - [x] **API:** `GET .../media/{media_id}/analysis/albion/combat-timeline`
 - [x] **Tests:** 8 unit tests + integration API test
 
+### M5-005 — Bomb Event Detection (2026-06-27)
+- [x] **`AlbionBombConfig`** — kill-spike thresholds + fusion weights from `ai/plugins/albion/bombs/`
+- [x] **`AlbionBombDetector` plugin** — detects coordinated bomb moments when OCR kill spikes meet `bomb_min_kills` within `bomb_kill_window_ms`
+- [x] **Multi-signal fusion** — confidence and `bomb_score` (0–10) from OCR kills, M3 motion, M3 audio peaks, and ability activations/ultimates
+- [x] **Sibling detector reuse** — prefers same-run combat timeline and Albion OCR; uses cached motion/audio when available
+- [x] **Per-frame-window cache** — `frame_windows[].cache_key` per sampled window
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/bombs`
+- [x] **Tests:** 9 unit tests + integration API test
+
 ---
 
 ## Work In Progress
 
-None — M5-004 complete; ready for M5-005.
+None — M5-005 complete; ready for M5-006.
 
 ---
 
@@ -191,7 +200,7 @@ None — M5-004 complete; ready for M5-005.
 | M5-002 | OCR Pipeline | **Complete** |
 | M5-003 | Ability Recognition | **Complete** |
 | M5-004 | Combat Timeline | **Complete** |
-| M5-005 | Bomb Event Detection | Not started |
+| M5-005 | Bomb Event Detection | **Complete** |
 | M5-006 | Engagement Classification | Not started |
 | M5-007 | Highlight Ranking | Not started |
 | M5-008 | Search Engine | Not started |
@@ -224,7 +233,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **M5-005 — Bomb Event Detection** (coordinated bomb moments from motion, audio, OCR, and ability fusion)
+1. **M5-006 — Engagement Classification** (ZvZ, ganking, gathering tags per clip)
 
 ---
 
@@ -232,7 +241,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M5 in progress** (5/10 sub-milestones) |
+| Milestone | **M5 in progress** (6/10 sub-milestones) |
 | Backend tests | 250+ |
 | Open P0 bugs | 0 |
 

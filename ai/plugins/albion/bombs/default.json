@@ -1,0 +1,15 @@
+{
+  "id": "default",
+  "version": "1.0",
+  "bomb_min_kills": 3,
+  "bomb_kill_window_ms": 2000,
+  "sample_interval_ms": 2000,
+  "window_ms": 2000,
+  "motion_threshold": 0.35,
+  "audio_peak_threshold": 0.4,
+  "min_fusion_score": 0.45,
+  "ocr_weight": 0.4,
+  "motion_weight": 0.2,
+  "audio_weight": 0.2,
+  "ability_weight": 0.2
+}

@@ -250,9 +250,19 @@ curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis
 
 ---
 
-### M5-005 — Bomb Event Detection *(not started)*
+### M5-005 — Bomb Event Detection *(complete)*
+
+```bash
+python3 -m pytest tests/unit/test_albion_bomb_detection.py -v
+curl -X POST "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/run"
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/bombs"
+```
 
 **Pass if:** coordinated bomb moments detected with confidence scores from motion, audio, OCR, and ability fusion.
+
+**Broken if:** `null` after a successful albion run that includes the `bomb` detector, missing `bomb_score`/`fusion` on events, or no bomb detected when combat timeline has `>= bomb_min_kills` kills in the configured window.
+
+**Note:** on real clips, OCR-only kill spikes may produce bombs with high `fusion.ocr_score` but low motion/audio if M3 caches are missing — that is valid for this milestone.
 
 ---
 

@@ -56,6 +56,7 @@ async def test_albion_detectors_list(client: AsyncClient):
     assert any(item["detector_id"] == "ocr" for item in detectors)
     assert any(item["detector_id"] == "ability" for item in detectors)
     assert any(item["detector_id"] == "combat" for item in detectors)
+    assert any(item["detector_id"] == "bomb" for item in detectors)
 
 
 @pytest.mark.asyncio
@@ -851,6 +852,164 @@ async def test_albion_combat_timeline_analysis_query(client: AsyncClient, tmp_pa
     assert body["summary"]["retreat_count"] == 1
     assert body["entries"][1]["event_type"] == "kill"
     assert "kill" in body["entries"][1]["search_text"]
+
+
+@pytest.mark.asyncio
+async def test_albion_bomb_analysis_query(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-bomb-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-bomb.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-bomb",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-bomb.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=6000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    bomb_payload = {
+        "detector_version": "albion-bomb-v1.0",
+        "cache_key": "albion-bomb:test",
+        "duration_ms": 6000,
+        "frame_rate": 60.0,
+        "window_ms": 2000,
+        "sample_interval_ms": 2000,
+        "config_id": "default",
+        "summary": {
+            "frames_sampled": 2,
+            "window_count": 2,
+            "bomb_count": 1,
+            "top_bomb_score": 8.4,
+            "total_kill_count": 4,
+            "config_id": "default",
+            "by_source": {"ocr": True, "motion": True, "audio": True, "ability": True},
+            "reused_albion_combat": True,
+            "reused_albion_ocr": False,
+            "reused_albion_ability": True,
+            "reused_motion": True,
+            "reused_audio": True,
+        },
+        "frame_windows": [
+            {
+                "window_start_ms": 2000,
+                "window_end_ms": 4000,
+                "cache_key": "bomb-window:2000-4000",
+                "config_id": "default",
+                "bomb_count": 1,
+                "max_bomb_score": 8.4,
+                "events": [
+                    {
+                        "event_id": "bomb:2600:0",
+                        "timestamp_ms": 2600,
+                        "window_start_ms": 2000,
+                        "window_end_ms": 4000,
+                        "confidence": 0.84,
+                        "bomb_score": 8.4,
+                        "kill_count": 4,
+                        "fusion": {
+                            "ocr_score": 1.0,
+                            "motion_score": 0.8,
+                            "audio_score": 0.7,
+                            "ability_score": 0.6,
+                        },
+                        "search_text": "bomb coordinated",
+                        "reasoning": "Bomb detected: 4 kills in 2000ms",
+                        "metadata": {},
+                    },
+                ],
+            },
+        ],
+        "events": [
+            {
+                "event_id": "bomb:2600:0",
+                "timestamp_ms": 2600,
+                "window_start_ms": 2000,
+                "window_end_ms": 4000,
+                "confidence": 0.84,
+                "bomb_score": 8.4,
+                "kill_count": 4,
+                "fusion": {
+                    "ocr_score": 1.0,
+                    "motion_score": 0.8,
+                    "audio_score": 0.7,
+                    "ability_score": 0.6,
+                },
+                "search_text": "bomb coordinated",
+                "reasoning": "Bomb detected: 4 kills in 2000ms",
+                "metadata": {},
+            },
+        ],
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:bomb-test",
+            status=ProcessingStatus.READY,
+            payload={
+                "analyzer_version": "albion-framework-v1.0",
+                "cache_key": "albion:bomb-test",
+                "duration_ms": 6000,
+                "frame_rate": 60.0,
+                "summary": {
+                    "detector_count": 6,
+                    "event_count": 1,
+                    "gpu_enabled": True,
+                    "detector_ids": ["framework_probe", "ui", "ocr", "ability", "combat", "bomb"],
+                },
+                "detector_results": {
+                    "bomb": {
+                        "detector_id": "bomb",
+                        "detector_version": "albion-bomb-v1.0",
+                        "cache_key": "albion-bomb:test",
+                        "confidence": 0.9,
+                        "reasoning": "test",
+                        "events": [],
+                        "payload": bomb_payload,
+                    },
+                },
+                "detector_caches": {},
+            },
+            source_fingerprint="fp-albion-bomb",
+            confidence=0.9,
+        )
+
+    bombs = await client.get(
+        f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion/bombs",
+    )
+    assert bombs.status_code == 200
+    body = bombs.json()
+    assert body is not None
+    assert body["detector_version"] == "albion-bomb-v1.0"
+    assert body["summary"]["bomb_count"] == 1
+    assert body["summary"]["top_bomb_score"] == 8.4
+    assert body["events"][0]["fusion"]["motion_score"] > 0
 
 
 @pytest.mark.asyncio

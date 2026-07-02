@@ -14,6 +14,7 @@ from montage_backend.models.domain.analysis import (
 )
 from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
 from montage_backend.analysis.albion.ability.albion_ability_analysis import AlbionAbilityAnalysisResult
+from montage_backend.analysis.albion.bomb.albion_bomb_analysis import AlbionBombAnalysisResult
 from montage_backend.analysis.albion.combat.albion_combat_analysis import AlbionCombatAnalysisResult
 from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
 from montage_backend.analysis.albion.ui.albion_ui_analysis import AlbionUiAnalysisResult
@@ -294,6 +295,18 @@ async def get_albion_combat_analysis(
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AlbionCombatAnalysisResult | None:
     return await service.get_albion_combat_analysis(project_id, media_id)
+
+
+@router.get(
+    "/{project_id}/media/{media_id}/analysis/albion/bombs",
+    response_model=AlbionBombAnalysisResult | None,
+)
+async def get_albion_bomb_analysis(
+    project_id: str,
+    media_id: str,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AlbionBombAnalysisResult | None:
+    return await service.get_albion_bomb_analysis(project_id, media_id)
 
 
 @router.get(
