@@ -55,6 +55,7 @@ async def test_albion_detectors_list(client: AsyncClient):
     assert any(item["detector_id"] == "framework_probe" for item in detectors)
     assert any(item["detector_id"] == "ocr" for item in detectors)
     assert any(item["detector_id"] == "ability" for item in detectors)
+    assert any(item["detector_id"] == "combat" for item in detectors)
 
 
 @pytest.mark.asyncio
@@ -664,6 +665,192 @@ async def test_albion_ability_analysis_query(client: AsyncClient, tmp_path):
     assert body["summary"]["by_ability"]["meteor"] == 1
     assert len(body["frame_windows"]) == 2
     assert body["frame_windows"][0]["cache_key"]
+
+
+@pytest.mark.asyncio
+async def test_albion_combat_timeline_analysis_query(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-combat-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-combat.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-combat",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-combat.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=6000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    combat_payload = {
+        "detector_version": "albion-combat-v1.0",
+        "cache_key": "albion-combat:test",
+        "duration_ms": 6000,
+        "frame_rate": 60.0,
+        "window_ms": 2000,
+        "sample_interval_ms": 2000,
+        "config_id": "default",
+        "summary": {
+            "frames_sampled": 2,
+            "window_count": 2,
+            "entry_count": 4,
+            "fight_count": 1,
+            "kill_count": 1,
+            "death_count": 0,
+            "retreat_count": 1,
+            "config_id": "default",
+            "by_event_type": {
+                "fight_start": 1,
+                "fight_end": 1,
+                "kill": 1,
+                "death": 0,
+                "retreat": 1,
+            },
+            "reused_albion_ocr": True,
+            "reused_albion_ability": False,
+            "reused_albion_ui": False,
+            "reused_motion": False,
+        },
+        "frame_windows": [
+            {
+                "window_start_ms": 2000,
+                "window_end_ms": 4000,
+                "cache_key": "combat-window:2000-4000",
+                "config_id": "default",
+                "activity_score": 0.62,
+                "entry_count": 3,
+                "entries": [
+                    {
+                        "entry_id": "fight_start:2000:0",
+                        "event_type": "fight_start",
+                        "timestamp_ms": 2000,
+                        "window_start_ms": 2000,
+                        "window_end_ms": 4000,
+                        "confidence": 0.78,
+                        "label": "Fight started",
+                        "search_text": "fight_start fight started combat",
+                        "metadata": {},
+                    },
+                ],
+            },
+        ],
+        "entries": [
+            {
+                "entry_id": "fight_start:2000:0",
+                "event_type": "fight_start",
+                "timestamp_ms": 2000,
+                "window_start_ms": 2000,
+                "window_end_ms": 4000,
+                "confidence": 0.78,
+                "label": "Fight started",
+                "search_text": "fight_start fight started combat",
+                "metadata": {},
+            },
+            {
+                "entry_id": "kill:2500:1",
+                "event_type": "kill",
+                "timestamp_ms": 2500,
+                "window_start_ms": 2500,
+                "window_end_ms": 4500,
+                "confidence": 0.9,
+                "label": "Kill: Bojukre killed Enemy",
+                "search_text": "kill bojukre killed enemy",
+                "metadata": {},
+            },
+            {
+                "entry_id": "fight_end:4000:2",
+                "event_type": "fight_end",
+                "timestamp_ms": 4000,
+                "window_start_ms": 2000,
+                "window_end_ms": 4000,
+                "confidence": 0.76,
+                "label": "Fight ended",
+                "search_text": "fight_end fight ended combat",
+                "metadata": {},
+            },
+            {
+                "entry_id": "retreat:7000:3",
+                "event_type": "retreat",
+                "timestamp_ms": 7000,
+                "window_start_ms": 4000,
+                "window_end_ms": 10000,
+                "confidence": 0.7,
+                "label": "Retreat",
+                "search_text": "retreat disengage combat",
+                "metadata": {},
+            },
+        ],
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:combat-test",
+            status=ProcessingStatus.READY,
+            payload={
+                "analyzer_version": "albion-framework-v1.0",
+                "cache_key": "albion:combat-test",
+                "duration_ms": 6000,
+                "frame_rate": 60.0,
+                "summary": {
+                    "detector_count": 5,
+                    "event_count": 4,
+                    "gpu_enabled": True,
+                    "detector_ids": ["framework_probe", "ui", "ocr", "ability", "combat"],
+                },
+                "detector_results": {
+                    "combat": {
+                        "detector_id": "combat",
+                        "detector_version": "albion-combat-v1.0",
+                        "cache_key": "albion-combat:test",
+                        "confidence": 0.9,
+                        "reasoning": "test",
+                        "events": [],
+                        "payload": combat_payload,
+                    },
+                },
+                "detector_caches": {},
+            },
+            source_fingerprint="fp-albion-combat",
+            confidence=0.9,
+        )
+
+    combat = await client.get(
+        f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion/combat-timeline",
+    )
+    assert combat.status_code == 200
+    body = combat.json()
+    assert body is not None
+    assert body["detector_version"] == "albion-combat-v1.0"
+    assert body["config_id"] == "default"
+    assert body["summary"]["kill_count"] == 1
+    assert body["summary"]["retreat_count"] == 1
+    assert body["entries"][1]["event_type"] == "kill"
+    assert "kill" in body["entries"][1]["search_text"]
 
 
 @pytest.mark.asyncio

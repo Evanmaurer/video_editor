@@ -18,6 +18,7 @@ class AlbionDetectorId(str, Enum):
     UI = "ui"
     OCR = "ocr"
     ABILITY = "ability"
+    COMBAT = "combat"
 
 
 class AlbionDetectorProgress(BaseModel):

@@ -289,5 +289,5 @@ async def test_albion_ui_detector_reuses_m3_object_cache():
 
 def test_default_albion_registry_includes_ui_detector():
     registry = build_default_albion_registry()
-    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability"]
+    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability", "combat"]
     assert registry.detector_versions()["ui"] == "albion-ui-v1.0"

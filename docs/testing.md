@@ -234,9 +234,19 @@ curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis
 
 ---
 
-### M5-004 — Combat Timeline *(not started)*
+### M5-004 — Combat Timeline *(complete)*
 
-**Pass if:** fight start/end, kills, deaths, and retreats appear as searchable timeline entries.
+```bash
+python3 -m pytest tests/unit/test_albion_combat_timeline.py -v
+curl -X POST "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/run"
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/combat-timeline"
+```
+
+**Pass if:** fight start/end, kills, deaths, and retreats appear as searchable timeline entries with `label`, `search_text`, and `timestamp_ms`; `frame_windows[].cache_key` per window.
+
+**Broken if:** `null` after a successful albion run that includes the `combat` detector, missing `search_text` on entries, or fight boundaries when OCR has kill/death signals plus sustained activity.
+
+**Note:** real ZvZ clips with noisy OCR may still produce kills without clean fight segmentation; empty `entries` with `summary.entry_count: 0` is valid when no combat OCR signals exist.
 
 ---
 

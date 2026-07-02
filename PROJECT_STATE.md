@@ -8,9 +8,9 @@
 
 **Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** M5-004 — Combat Timeline (not started)
+**Current sub-milestone:** M5-005 — Bomb Event Detection (not started)
 
-**Completed this session:** M5-003 Ability Recognition
+**Completed this session:** M5-004 Combat Timeline
 
 ---
 
@@ -165,11 +165,20 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
 - [x] **API:** `GET .../media/{media_id}/analysis/albion/abilities`
 - [x] **Tests:** 8 unit tests + integration API test
 
+### M5-004 — Combat Timeline (2026-06-27)
+- [x] **`AlbionCombatConfig`** — built-in thresholds + external JSON/YAML from `ai/plugins/albion/combat/`
+- [x] **`AlbionCombatDetector` plugin** — fuses OCR kill/death messages, ability activations, UI health-bar activity, and M3 motion into searchable timeline entries
+- [x] **Event taxonomy** — `fight_start`, `fight_end`, `kill`, `death`, `retreat` with `label` and `search_text` for future search
+- [x] **Per-frame-window cache** — `frame_windows[].cache_key` per sampled window with activity scores
+- [x] **Sibling detector reuse** — prefers same-run Albion OCR, ability, and UI payloads; uses cached M3 motion when available
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/combat-timeline`
+- [x] **Tests:** 8 unit tests + integration API test
+
 ---
 
 ## Work In Progress
 
-None — M5-003 complete; ready for M5-004.
+None — M5-004 complete; ready for M5-005.
 
 ---
 
@@ -181,7 +190,7 @@ None — M5-003 complete; ready for M5-004.
 | M5-001 | User Interface Recognition | **Complete** |
 | M5-002 | OCR Pipeline | **Complete** |
 | M5-003 | Ability Recognition | **Complete** |
-| M5-004 | Combat Timeline | Not started |
+| M5-004 | Combat Timeline | **Complete** |
 | M5-005 | Bomb Event Detection | Not started |
 | M5-006 | Engagement Classification | Not started |
 | M5-007 | Highlight Ranking | Not started |
@@ -215,7 +224,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **M5-004 — Combat Timeline** (fight start/end, kills, deaths, retreats as searchable timeline entries)
+1. **M5-005 — Bomb Event Detection** (coordinated bomb moments from motion, audio, OCR, and ability fusion)
 
 ---
 
@@ -223,7 +232,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M5 in progress** (4/10 sub-milestones) |
+| Milestone | **M5 in progress** (5/10 sub-milestones) |
 | Backend tests | 250+ |
 | Open P0 bugs | 0 |
 

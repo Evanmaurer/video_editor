@@ -1,0 +1,10 @@
+{
+  "id": "default",
+  "version": "1.0",
+  "fight_activity_threshold": 0.3,
+  "fight_min_duration_ms": 2500,
+  "fight_gap_ms": 4500,
+  "retreat_gap_ms": 3000,
+  "sample_interval_ms": 2000,
+  "window_ms": 2000
+}
