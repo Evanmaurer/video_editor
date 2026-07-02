@@ -221,12 +221,16 @@ curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis
 
 ```bash
 python3 -m pytest tests/unit/test_albion_ability_recognition.py -v
+curl -X POST "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/run"
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/status"
 curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/abilities"
 ```
 
-**Pass if:** ability activations, cooldowns, and ultimates appear as timestamped events; new abilities can be added via config without code changes.
+**Pass if:** ability activations, cooldowns, and ultimates appear as timestamped events when OCR finds `ability_name` detections; new abilities can be added via config without code changes. `summary.reused_albion_ocr` is true when Albion OCR ran in the same job.
 
-**Broken if:** empty `events` when OCR mentions abilities, missing `cooldown_ready` projections, or catalog changes require code edits.
+**Broken if:** `null` after a successful albion run that includes the `ability` detector, empty `events` when OCR has `ability_name` mentions, missing `cooldown_ready` projections, or catalog changes require code edits.
+
+**Note:** noisy OCR on real gameplay clips often yields `ability_name: 0` and an empty-but-valid abilities payload (`mention_count: 0`). That is expected for this milestone; ability recognition depends on OCR classifying spell names correctly.
 
 ---
 

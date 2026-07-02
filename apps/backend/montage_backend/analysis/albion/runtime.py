@@ -86,8 +86,11 @@ class AlbionAnalysisEngine:
             detector_cache = prior_caches.get(detector_id)
             expected_key = detector.cache_key(ctx.source_fingerprint, frame_rate=frame_rate)
 
+            prior_result = ctx.extras.get("detector_results", {}).get(detector_id)
             if (
-                detector_cache is not None
+                isinstance(prior_result, dict)
+                and prior_result.get("detector_id") == detector_id
+                and detector_cache is not None
                 and detector.is_cache_valid(
                     detector_cache.get("detector_version", ""),
                     detector_cache.get("cache_key", ""),
@@ -95,9 +98,7 @@ class AlbionAnalysisEngine:
                     frame_rate=frame_rate,
                 )
             ):
-                cached_output = AlbionDetectorOutput.model_validate(
-                    ctx.extras.get("detector_results", {}).get(detector_id, {}),
-                )
+                cached_output = AlbionDetectorOutput.model_validate(prior_result)
                 if cached_output.cache_key == expected_key:
                     detector_results[detector_id] = cached_output
                     ctx.extras["detector_results"] = {

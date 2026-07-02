@@ -246,6 +246,38 @@ async def test_albion_analysis_engine_reuses_valid_detector_cache():
     assert result.detector_results["framework_probe"].reasoning == "cached"
 
 
+@pytest.mark.asyncio
+async def test_albion_analysis_engine_reruns_detector_when_cache_metadata_missing_payload():
+    registry = AlbionDetectorRegistry()
+    registry.register(FrameworkProbeDetector())
+    engine = AlbionAnalysisEngine(registry)
+    detector = registry.get(AlbionDetectorId.FRAMEWORK_PROBE)
+    cache_key = detector.cache_key("fp-cache", frame_rate=60.0)
+    ctx = AlbionDetectorContext(
+        project_id="p1",
+        media_id="m1",
+        source_fingerprint="fp-cache",
+        gpu_enabled=True,
+        extras={
+            "detector_caches": {
+                "framework_probe": {
+                    "detector_version": detector.version,
+                    "cache_key": cache_key,
+                },
+            },
+            "detector_results": {},
+        },
+    )
+
+    result = await engine.analyze(
+        ctx,
+        video_path="/tmp/fake.mp4",
+        duration_ms=1000,
+        frame_rate=60.0,
+    )
+    assert result.detector_results["framework_probe"].reasoning != "cached"
+
+
 def test_build_albion_analysis_result_tracks_detector_caches():
     output = AlbionDetectorOutput(
         detector_id="framework_probe",
