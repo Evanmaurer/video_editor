@@ -1,0 +1,71 @@
+{
+  "id": "albion_1080p_default",
+  "game_id": "albion",
+  "resolution": [1920, 1080],
+  "ui_scale": 1.0,
+  "regions": {
+    "kill_feed": {
+      "element_type": "kill_feed",
+      "x": 0.78,
+      "y": 0.05,
+      "width": 0.20,
+      "height": 0.40,
+      "detector": "edge_density"
+    },
+    "party_frame": {
+      "element_type": "party_frame",
+      "x": 0.0,
+      "y": 0.12,
+      "width": 0.16,
+      "height": 0.55,
+      "detector": "stack_contours"
+    },
+    "minimap": {
+      "element_type": "minimap",
+      "x": 0.78,
+      "y": 0.72,
+      "width": 0.22,
+      "height": 0.28,
+      "detector": "edge_density"
+    },
+    "health_bar": {
+      "element_type": "health_bar",
+      "x": 0.40,
+      "y": 0.90,
+      "width": 0.20,
+      "height": 0.05,
+      "detector": "color_bars"
+    },
+    "ability_bar": {
+      "element_type": "ability_bar",
+      "x": 0.35,
+      "y": 0.85,
+      "width": 0.30,
+      "height": 0.10,
+      "detector": "edge_density"
+    },
+    "chat_panel": {
+      "element_type": "chat_panel",
+      "x": 0.0,
+      "y": 0.55,
+      "width": 0.28,
+      "height": 0.30,
+      "detector": "panel_edges"
+    },
+    "resource_bar": {
+      "element_type": "resource_bar",
+      "x": 0.35,
+      "y": 0.96,
+      "width": 0.30,
+      "height": 0.03,
+      "detector": "color_bars"
+    }
+  },
+  "thresholds": {
+    "bomb_min_kills": 3,
+    "bomb_kill_window_ms": 2000,
+    "wipe_min_deaths": 5,
+    "wipe_window_ms": 3000,
+    "engagement_min_duration_ms": 5000
+  }
+}

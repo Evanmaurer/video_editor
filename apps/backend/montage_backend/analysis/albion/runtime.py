@@ -11,6 +11,7 @@ from montage_backend.analysis.albion.base import (
 )
 from montage_backend.analysis.albion.detectors.framework_probe import FrameworkProbeDetector
 from montage_backend.analysis.albion.detectors.ocr_detector import AlbionOcrDetector
+from montage_backend.analysis.albion.detectors.ui_detector import AlbionUiDetector
 from montage_backend.analysis.albion.registry import AlbionDetectorRegistry
 
 
@@ -153,5 +154,6 @@ class AlbionAnalysisEngine:
 def build_default_albion_registry() -> AlbionDetectorRegistry:
     registry = AlbionDetectorRegistry()
     registry.register(FrameworkProbeDetector())
+    registry.register(AlbionUiDetector())
     registry.register(AlbionOcrDetector())
     return registry

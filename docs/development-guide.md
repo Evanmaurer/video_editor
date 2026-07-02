@@ -253,7 +253,7 @@ cd apps/backend && pytest tests/integration
 cd apps/backend && pytest tests/validation
 ```
 
-See [19-testing-strategy.md](./19-testing-strategy.md) for full testing guide.
+See [testing.md](./testing.md) for hands-on verification steps, or [19-testing-strategy.md](./19-testing-strategy.md) for the full testing strategy.
 
 ---
 

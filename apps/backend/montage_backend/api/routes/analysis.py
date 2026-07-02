@@ -14,6 +14,7 @@ from montage_backend.models.domain.analysis import (
 )
 from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
 from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
+from montage_backend.analysis.albion.ui.albion_ui_analysis import AlbionUiAnalysisResult
 from montage_backend.analysis.audio_analysis import AudioAnalysisResult
 from montage_backend.analysis.embedding_analysis import (
     EmbeddingAnalysisResult,
@@ -255,6 +256,18 @@ async def get_albion_ocr_analysis(
     service: AnalysisService = Depends(get_analysis_service),
 ) -> AlbionOcrAnalysisResult | None:
     return await service.get_albion_ocr_analysis(project_id, media_id)
+
+
+@router.get(
+    "/{project_id}/media/{media_id}/analysis/albion/ui",
+    response_model=AlbionUiAnalysisResult | None,
+)
+async def get_albion_ui_analysis(
+    project_id: str,
+    media_id: str,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AlbionUiAnalysisResult | None:
+    return await service.get_albion_ui_analysis(project_id, media_id)
 
 
 @router.get(

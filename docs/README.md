@@ -30,6 +30,7 @@ This directory contains the complete software design package for MontageAI, a pr
 | 17 | Task Backlog | [17-task-backlog.md](./17-task-backlog.md) |
 | 18 | Coding Standards | [18-coding-standards.md](./18-coding-standards.md) |
 | 19 | Testing Strategy | [19-testing-strategy.md](./19-testing-strategy.md) |
+| — | **Testing Guide (how-to)** | **[testing.md](./testing.md)** |
 | 20 | Definition of Done | [20-definition-of-done.md](./20-definition-of-done.md) |
 | — | UI/UX Design | [ui-ux-design.md](./ui-ux-design.md) |
 | — | Development Guide | [development-guide.md](./development-guide.md) |
@@ -37,6 +38,7 @@ This directory contains the complete software design package for MontageAI, a pr
 
 ## Quick Links
 
+- [Testing Guide (how-to)](./testing.md)
 - [Project State (root)](../PROJECT_STATE.md)
 - [Requirements Summary](./requirements.md)
 

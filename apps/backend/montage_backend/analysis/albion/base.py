@@ -15,6 +15,7 @@ ALBION_FRAMEWORK_VERSION = "albion-framework-v1.0"
 
 class AlbionDetectorId(str, Enum):
     FRAMEWORK_PROBE = "framework_probe"
+    UI = "ui"
     OCR = "ocr"
 
 

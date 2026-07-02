@@ -17,9 +17,51 @@ from montage_backend.analysis.base import AnalysisModuleId
 from montage_backend.analysis.modules.albion import AlbionAnalyzer
 from montage_backend.analysis.registry import AnalyzerRegistry
 from montage_backend.models.domain.analysis import AnalysisCancelledError
+from montage_backend.analysis.object.engine import ObjectDetector
+from montage_backend.analysis.object_analysis import (
+    ObjectBoundingBox,
+    ObjectCategory,
+    ObjectDetection,
+    build_object_analysis_result,
+)
 from montage_backend.analysis.ocr.engine import OcrEngine, RawOcrDetection
 from montage_backend.analysis.ocr_analysis import build_ocr_analysis_result
 from montage_backend.services.analysis_service import build_default_registry
+
+
+def _build_m3_object_for_framework() -> dict:
+    class _Detector(ObjectDetector):
+        detector_id = "ui_heuristic"
+        version = "1.0"
+
+        def is_available(self) -> bool:
+            return True
+
+        def detect_png(self, png_bytes: bytes) -> list:
+            _ = png_bytes
+            return []
+
+    m3 = build_object_analysis_result(
+        analyzer_version="object-analyzer-v1.0",
+        cache_key="object:framework-test",
+        duration_ms=3000,
+        frame_rate=30.0,
+        sample_interval_ms=1500,
+        frames_sampled=2,
+        detector=_Detector(),
+        detections=[
+            ObjectDetection(
+                category=ObjectCategory.PARTY_FRAME,
+                label="party_frame_stack",
+                timestamp_ms=0,
+                frame=0,
+                confidence=0.8,
+                bbox=ObjectBoundingBox(x=0, y=120, width=300, height=500),
+                source_model="ui_heuristic",
+            ),
+        ],
+    )
+    return m3.model_dump(mode="json")
 
 
 class FakeOcrEngineForFramework(OcrEngine):
@@ -130,7 +172,7 @@ async def test_albion_analysis_engine_runs_registered_detectors():
         media_id="m1",
         source_fingerprint="fp-engine",
         gpu_enabled=False,
-        extras={"ocr_analysis": m3.model_dump(mode="json")},
+        extras={"ocr_analysis": m3.model_dump(mode="json"), "object_analysis": _build_m3_object_for_framework()},
     )
 
     result = await analysis_engine.analyze(
@@ -141,9 +183,10 @@ async def test_albion_analysis_engine_runs_registered_detectors():
     )
     assert isinstance(result, AlbionAnalysisResult)
     assert result.analyzer_version == ALBION_FRAMEWORK_VERSION
-    assert result.summary.detector_count == 2
+    assert result.summary.detector_count == 3
     assert result.summary.event_count >= 1
     assert "framework_probe" in result.detector_results
+    assert "ui" in result.detector_results
     assert "ocr" in result.detector_results
     assert analysis_engine.is_cache_valid(
         ALBION_FRAMEWORK_VERSION,
@@ -233,11 +276,13 @@ def test_albion_analyzer_cache_key_includes_detector_versions():
     key = analyzer.cache_key("fp-1", frame_rate=60.0)
     assert key.startswith(ALBION_FRAMEWORK_VERSION)
     assert "framework_probe" in key
+    assert "ui" in key
     assert "ocr" in key
 
 
 def test_default_albion_registry_lists_framework_probe():
     registry = build_default_albion_registry()
-    assert registry.list_detectors() == ["framework_probe", "ocr"]
+    assert registry.list_detectors() == ["framework_probe", "ocr", "ui"]
     assert registry.detector_versions()["framework_probe"] == "framework-probe-v1.0"
+    assert registry.detector_versions()["ui"] == "albion-ui-v1.0"
     assert registry.detector_versions()["ocr"] == "albion-ocr-v1.0"

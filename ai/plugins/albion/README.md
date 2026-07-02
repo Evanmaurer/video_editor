@@ -36,4 +36,4 @@ thresholds:
   wipe_min_deaths: 5
 ```
 
-Implementation begins in Milestone 3.
+Implementation lives in `apps/backend/montage_backend/analysis/albion/ui/` with presets in this folder.

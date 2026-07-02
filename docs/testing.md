@@ -191,16 +191,16 @@ curl http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/analysis/queue
 
 ---
 
-### M5-001 — User Interface Recognition *(not started)*
-
-When implemented, test with:
+### M5-001 — User Interface Recognition *(complete)*
 
 ```bash
 python3 -m pytest tests/unit/test_albion_ui_detection.py -v
-curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion"
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/ui"
 ```
 
-**Pass if:** detections include UI elements (`party_frame`, `minimap`, `health_bar`, etc.) with `timestamp_ms` and bounding boxes.
+**Pass if:** detections include UI elements (`party_frame`, `minimap`, `health_bar`, `ability_bar`, `kill_feed`, etc.) with `timestamp_ms`, bounding boxes, and `template_id`; `frame_windows[].cache_key` per window; `summary.reused_m3_object` is true when M3 object cache exists.
+
+**Broken if:** empty `frame_windows`, missing bounding boxes, or live UI detection re-runs when M3 object cache is already available.
 
 ---
 

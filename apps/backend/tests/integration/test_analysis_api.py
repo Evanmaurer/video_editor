@@ -312,6 +312,174 @@ async def test_albion_ocr_analysis_query(client: AsyncClient, tmp_path):
     assert len(body["frame_windows"]) == 2
     assert body["frame_windows"][0]["cache_key"]
 
+
+@pytest.mark.asyncio
+async def test_albion_ui_analysis_query(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-ui-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion-ui.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion-ui",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion-ui.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=4500,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    ui_payload = {
+        "detector_version": "albion-ui-v1.0",
+        "cache_key": "albion-ui:test",
+        "duration_ms": 4500,
+        "frame_rate": 60.0,
+        "window_ms": 2000,
+        "sample_interval_ms": 2000,
+        "template_id": "albion_1080p_default",
+        "summary": {
+            "frames_sampled": 2,
+            "window_count": 2,
+            "detection_count": 3,
+            "unique_element_count": 3,
+            "template_id": "albion_1080p_default",
+            "engine_id": "template_heuristic",
+            "engine_version": "1.0",
+            "by_element": {
+                "party_frame": 1,
+                "minimap": 1,
+                "health_bar": 1,
+            },
+            "reused_m3_object": True,
+        },
+        "frame_windows": [
+            {
+                "window_start_ms": 0,
+                "window_end_ms": 2000,
+                "cache_key": "window:0-2000",
+                "template_id": "albion_1080p_default",
+                "engine_id": "template_heuristic",
+                "engine_version": "1.0",
+                "detection_count": 2,
+                "detections": [
+                    {
+                        "element_type": "party_frame",
+                        "label": "party_frame",
+                        "timestamp_ms": 0,
+                        "window_start_ms": 0,
+                        "window_end_ms": 2000,
+                        "confidence": 0.82,
+                        "bbox": {"x": 0, "y": 120, "width": 300, "height": 500},
+                        "template_id": "albion_1080p_default",
+                        "metadata": {"region_name": "party_frame"},
+                    },
+                    {
+                        "element_type": "health_bar",
+                        "label": "health_bar",
+                        "timestamp_ms": 0,
+                        "window_start_ms": 0,
+                        "window_end_ms": 2000,
+                        "confidence": 0.71,
+                        "bbox": {"x": 760, "y": 980, "width": 380, "height": 40},
+                        "template_id": "albion_1080p_default",
+                        "metadata": {"region_name": "health_bar"},
+                    },
+                ],
+            },
+            {
+                "window_start_ms": 2000,
+                "window_end_ms": 4000,
+                "cache_key": "window:2000-4000",
+                "template_id": "albion_1080p_default",
+                "engine_id": "template_heuristic",
+                "engine_version": "1.0",
+                "detection_count": 1,
+                "detections": [
+                    {
+                        "element_type": "minimap",
+                        "label": "minimap",
+                        "timestamp_ms": 2000,
+                        "window_start_ms": 2000,
+                        "window_end_ms": 4000,
+                        "confidence": 0.77,
+                        "bbox": {"x": 1500, "y": 780, "width": 400, "height": 280},
+                        "template_id": "albion_1080p_default",
+                        "metadata": {"region_name": "minimap"},
+                    },
+                ],
+            },
+        ],
+        "detections": [],
+    }
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:ui-test",
+            status=ProcessingStatus.READY,
+            payload={
+                "analyzer_version": "albion-framework-v1.0",
+                "cache_key": "albion:ui-test",
+                "duration_ms": 4500,
+                "frame_rate": 60.0,
+                "summary": {
+                    "detector_count": 2,
+                    "event_count": 1,
+                    "gpu_enabled": True,
+                    "detector_ids": ["framework_probe", "ui"],
+                },
+                "detector_results": {
+                    "ui": {
+                        "detector_id": "ui",
+                        "detector_version": "albion-ui-v1.0",
+                        "cache_key": "albion-ui:test",
+                        "confidence": 0.9,
+                        "reasoning": "test",
+                        "events": [],
+                        "payload": ui_payload,
+                    },
+                },
+                "detector_caches": {},
+            },
+            source_fingerprint="fp-albion-ui",
+            confidence=0.9,
+        )
+
+    ui = await client.get(f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion/ui")
+    assert ui.status_code == 200
+    body = ui.json()
+    assert body is not None
+    assert body["detector_version"] == "albion-ui-v1.0"
+    assert body["template_id"] == "albion_1080p_default"
+    assert body["summary"]["by_element"]["party_frame"] == 1
+    assert body["summary"]["by_element"]["minimap"] == 1
+    assert len(body["frame_windows"]) == 2
+    assert body["frame_windows"][0]["detections"][0]["bbox"]["width"] > 0
+
+
 @pytest.mark.asyncio
 async def test_scene_analysis_run_and_query(client: AsyncClient, tmp_path, monkeypatch):
     project_root = tmp_path / "analysis-project"
