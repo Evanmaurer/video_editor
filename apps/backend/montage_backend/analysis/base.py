@@ -17,6 +17,7 @@ class AnalysisModuleId(str, Enum):
     OCR = "ocr"
     OBJECT = "object"
     EMBEDDING = "embedding"
+    ALBION = "albion"
 
 
 class AnalysisProgress(BaseModel):

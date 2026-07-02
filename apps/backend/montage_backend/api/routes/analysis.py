@@ -12,6 +12,7 @@ from montage_backend.models.domain.analysis import (
     RunAnalysisRequest,
     SceneAnalysisResult,
 )
+from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
 from montage_backend.analysis.audio_analysis import AudioAnalysisResult
 from montage_backend.analysis.embedding_analysis import (
     EmbeddingAnalysisResult,
@@ -160,22 +161,6 @@ async def list_analysis_modules(
 
 
 @router.get(
-    "/{project_id}/media/{media_id}/analysis/{module_id}",
-    response_model=AnalysisModuleCacheRecord,
-)
-async def get_analysis_module_cache(
-    project_id: str,
-    media_id: str,
-    module_id: AnalysisModuleId,
-    service: AnalysisService = Depends(get_analysis_service),
-) -> AnalysisModuleCacheRecord:
-    cache = await service.get_module_cache(project_id, media_id, module_id)
-    if cache is None:
-        raise HTTPException(status_code=404, detail="Analysis cache not found")
-    return cache
-
-
-@router.get(
     "/{project_id}/media/{media_id}/analysis/scenes",
     response_model=SceneAnalysisResult | None,
 )
@@ -245,6 +230,38 @@ async def get_embedding_analysis(
     service: AnalysisService = Depends(get_analysis_service),
 ) -> EmbeddingAnalysisResult | None:
     return await service.get_embedding_analysis(project_id, media_id)
+
+
+@router.get(
+    "/{project_id}/media/{media_id}/analysis/albion",
+    response_model=AlbionAnalysisResult | None,
+)
+async def get_albion_analysis(
+    project_id: str,
+    media_id: str,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AlbionAnalysisResult | None:
+    return await service.get_albion_analysis(project_id, media_id)
+
+
+@router.get(
+    "/{project_id}/analysis/albion/detectors",
+)
+async def list_albion_detectors(
+    service: AnalysisService = Depends(get_analysis_service),
+) -> list[dict[str, str]]:
+    analyzer = service.registry.get(AnalysisModuleId.ALBION)
+    from montage_backend.analysis.modules.albion import AlbionAnalyzer
+
+    if not isinstance(analyzer, AlbionAnalyzer):
+        return []
+    return [
+        {
+            "detector_id": detector_id,
+            "version": analyzer.detector_registry.get(detector_id).version,
+        }
+        for detector_id in analyzer.detector_registry.list_detectors()
+    ]
 
 
 @router.post(
@@ -379,3 +396,19 @@ async def invalidate_analysis_module(
 ) -> Response:
     await service.invalidate_module(project_id, media_id, module_id)
     return Response(status_code=204)
+
+
+@router.get(
+    "/{project_id}/media/{media_id}/analysis/{module_id}",
+    response_model=AnalysisModuleCacheRecord,
+)
+async def get_analysis_module_cache(
+    project_id: str,
+    media_id: str,
+    module_id: AnalysisModuleId,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AnalysisModuleCacheRecord:
+    cache = await service.get_module_cache(project_id, media_id, module_id)
+    if cache is None:
+        raise HTTPException(status_code=404, detail="Analysis cache not found")
+    return cache

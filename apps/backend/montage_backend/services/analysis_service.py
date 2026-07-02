@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from montage_backend.analysis.base import AnalysisModuleId, AnalysisRunContext, Analyzer
+from montage_backend.analysis.modules.albion import AlbionAnalyzer
 from montage_backend.analysis.modules.audio import AudioAnalyzer
 from montage_backend.analysis.modules.motion import MotionAnalyzer
 from montage_backend.analysis.modules.embedding import EmbeddingAnalyzer
@@ -20,6 +21,7 @@ from montage_backend.analysis.registry import AnalyzerRegistry, default_registry
 from montage_backend.jobs.analysis_queue import AnalysisJobQueue, AnalysisQueueItem
 from montage_backend.logging import get_logger
 from montage_backend.media.cache import source_fingerprint
+from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
 from montage_backend.analysis.audio_analysis import AudioAnalysisResult
 from montage_backend.analysis.motion_analysis import MotionAnalysisResult
 from montage_backend.analysis.embedding.engine import resolve_embedding_engine
@@ -70,6 +72,7 @@ def build_default_registry() -> AnalyzerRegistry:
     registry.register(OcrAnalyzer())
     registry.register(ObjectAnalyzer())
     registry.register(EmbeddingAnalyzer())
+    registry.register(AlbionAnalyzer())
     return registry
 
 
@@ -81,6 +84,7 @@ class AnalysisService:
         AnalysisModuleId.OCR.value: "On-screen text: HUD, combat, player names, guild tags, chat, damage numbers",
         AnalysisModuleId.OBJECT.value: "Characters, mounts, spell effects, party frames, UI panels, health bars, minimap",
         AnalysisModuleId.EMBEDDING.value: "Semantic embeddings for clips, scenes, and keyframes with vector search",
+        AnalysisModuleId.ALBION.value: "Albion Online gameplay intelligence: UI, combat, abilities, and highlight events",
     }
     MODULE_PRIORITIES: dict[str, int] = {
         AnalysisModuleId.SCENE.value: 100,
@@ -89,7 +93,15 @@ class AnalysisService:
         AnalysisModuleId.OCR.value: 50,
         AnalysisModuleId.OBJECT.value: 50,
         AnalysisModuleId.EMBEDDING.value: 10,
+        AnalysisModuleId.ALBION.value: 5,
     }
+    ALBION_DEPENDENCY_MODULES = (
+        AnalysisModuleId.SCENE,
+        AnalysisModuleId.MOTION,
+        AnalysisModuleId.AUDIO,
+        AnalysisModuleId.OCR,
+        AnalysisModuleId.OBJECT,
+    )
 
     def __init__(
         self,
@@ -170,7 +182,10 @@ class AnalysisService:
         return job
 
     async def enqueue_default_modules(self, project_id: str, media_id: str) -> None:
+        project = await self._project_service.get_project(project_id)
         for module_id in AnalysisModuleId:
+            if module_id == AnalysisModuleId.ALBION and project.target_game != "albion":
+                continue
             await self.enqueue_module(
                 project_id,
                 media_id,
@@ -385,6 +400,16 @@ class AnalysisService:
         if cache is None or cache.status != ProcessingStatus.READY:
             return None
         return EmbeddingAnalysisResult.model_validate(cache.payload)
+
+    async def get_albion_analysis(
+        self,
+        project_id: str,
+        media_id: str,
+    ) -> AlbionAnalysisResult | None:
+        cache = await self.get_module_cache(project_id, media_id, AnalysisModuleId.ALBION)
+        if cache is None or cache.status != ProcessingStatus.READY:
+            return None
+        return AlbionAnalysisResult.model_validate(cache.payload)
 
     async def get_clip_analysis(
         self,
@@ -661,6 +686,18 @@ class AnalysisService:
             if scene_cache is not None and scene_cache.status == ProcessingStatus.READY:
                 segments = scene_cache.payload.get("segments", [])
                 ctx.extras["scene_segments"] = segments
+
+        if module_key == AnalysisModuleId.ALBION.value:
+            async with session_factory() as session:
+                for sibling in self.ALBION_DEPENDENCY_MODULES:
+                    sibling_cache = await self._repo.get_cache(session, media_id, sibling.value)
+                    if sibling_cache is not None and sibling_cache.status == ProcessingStatus.READY:
+                        ctx.extras[f"{sibling.value}_analysis"] = sibling_cache.payload
+                albion_cache = await self._repo.get_cache(session, media_id, module_key)
+                if albion_cache is not None and albion_cache.payload:
+                    ctx.extras["prior_albion_payload"] = albion_cache.payload
+                    ctx.extras["detector_caches"] = albion_cache.payload.get("detector_caches", {})
+                    ctx.extras["detector_results"] = albion_cache.payload.get("detector_results", {})
 
         async with session_factory() as session:
             await self._repo.update_job(

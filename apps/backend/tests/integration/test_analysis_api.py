@@ -44,7 +44,115 @@ async def test_analysis_modules_list(client: AsyncClient):
     assert any(module["module_id"] == "ocr" for module in modules)
     assert any(module["module_id"] == "object" for module in modules)
     assert any(module["module_id"] == "embedding" for module in modules)
+    assert any(module["module_id"] == "albion" for module in modules)
 
+
+@pytest.mark.asyncio
+async def test_albion_detectors_list(client: AsyncClient):
+    response = await client.get("/api/v1/projects/proj-1/analysis/albion/detectors")
+    assert response.status_code == 200
+    detectors = response.json()
+    assert any(item["detector_id"] == "framework_probe" for item in detectors)
+
+
+@pytest.mark.asyncio
+async def test_albion_analysis_query(client: AsyncClient, tmp_path):
+    project_root = tmp_path / "albion-framework-project"
+    project_id = await _create_project(client, project_root)
+
+    source = project_root / "media" / "originals" / "media-albion.mp4"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"fake")
+
+    media = MediaItem(
+        id="media-albion",
+        project_id=project_id,
+        file_path=str(source),
+        file_name="media-albion.mp4",
+        source_path=str(source),
+        media_type=MediaType.VIDEO,
+        role=MediaRole.CLIP,
+        storage_mode=StorageMode.COPY,
+        import_status=ImportStatus.READY,
+        proxy_status=ProcessingStatus.READY,
+        waveform_status=ProcessingStatus.READY,
+        scene_status=ProcessingStatus.READY,
+        metadata_status=ProcessingStatus.READY,
+        duration_ms=5000,
+        frame_rate=60.0,
+        tags=[],
+        is_favorite=False,
+        created_at=utc_now_iso(),
+        updated_at=utc_now_iso(),
+    )
+    media_service = deps.get_media_service()
+    session_factory = await media_service._project_service._ensure_project_db(project_root)
+    async with session_factory() as session:
+        await media_service._repo.create(session, media)
+
+    analysis_service: AnalysisService = deps.get_analysis_service()
+    _, session_factory = await analysis_service._project_session(project_id)
+    async with session_factory() as session:
+        await analysis_service._repo.upsert_cache(
+            session,
+            media_id=media.id,
+            module_id="albion",
+            analyzer_version="albion-framework-v1.0",
+            cache_key="albion:test",
+            status=ProcessingStatus.READY,
+            payload={
+                "analyzer_version": "albion-framework-v1.0",
+                "cache_key": "albion:test",
+                "duration_ms": 5000,
+                "frame_rate": 60.0,
+                "summary": {
+                    "detector_count": 1,
+                    "event_count": 1,
+                    "gpu_enabled": True,
+                    "detector_ids": ["framework_probe"],
+                },
+                "detector_results": {
+                    "framework_probe": {
+                        "detector_id": "framework_probe",
+                        "detector_version": "framework-probe-v1.0",
+                        "cache_key": "framework_probe:test",
+                        "confidence": 1.0,
+                        "reasoning": "Framework probe validated",
+                        "events": [
+                            {
+                                "event_type": "framework_probe",
+                                "timestamp_ms": 0,
+                                "confidence": 1.0,
+                                "reasoning": "ok",
+                                "metadata": {},
+                            },
+                        ],
+                        "payload": {"initialized": True},
+                    },
+                },
+                "detector_caches": {
+                    "framework_probe": {
+                        "detector_id": "framework_probe",
+                        "detector_version": "framework-probe-v1.0",
+                        "cache_key": "framework_probe:test",
+                        "confidence": 1.0,
+                        "reasoning": "Framework probe validated",
+                        "event_count": 1,
+                    },
+                },
+            },
+            source_fingerprint="fp-albion",
+            confidence=1.0,
+            reasoning="test cache",
+        )
+
+    albion = await client.get(f"/api/v1/projects/{project_id}/media/{media.id}/analysis/albion")
+    assert albion.status_code == 200
+    body = albion.json()
+    assert body is not None
+    assert body["analyzer_version"] == "albion-framework-v1.0"
+    assert body["summary"]["detector_count"] == 1
+    assert "framework_probe" in body["detector_results"]
 
 @pytest.mark.asyncio
 async def test_scene_analysis_run_and_query(client: AsyncClient, tmp_path, monkeypatch):

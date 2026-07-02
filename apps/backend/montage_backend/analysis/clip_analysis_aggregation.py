@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
 from montage_backend.analysis.audio_analysis import AudioAnalysisResult
 from montage_backend.analysis.base import AnalysisModuleId
 from montage_backend.analysis.embedding_analysis import EmbeddingAnalysisResult
@@ -99,6 +100,7 @@ def _parse_module_result(
         AnalysisModuleId.OCR.value: OcrAnalysisResult.model_validate,
         AnalysisModuleId.OBJECT.value: ObjectAnalysisResult.model_validate,
         AnalysisModuleId.EMBEDDING.value: EmbeddingAnalysisResult.model_validate,
+        AnalysisModuleId.ALBION.value: AlbionAnalysisResult.model_validate,
     }
     parser = parsers.get(module_id)
     if parser is None:

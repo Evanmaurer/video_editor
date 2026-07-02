@@ -6,11 +6,11 @@
 
 ## Current Milestone
 
-**Milestone 4: AI Montage Generation — COMPLETE**
+**Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** None (all M4 sub-milestones complete)
+**Current sub-milestone:** M5-001 — User Interface Recognition (not started)
 
-**Completed this session:** M4-009 AI Feedback Loop
+**Completed this session:** M5-000 Albion Detection Framework
 
 ---
 
@@ -126,11 +126,40 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
 - [x] **Regeneration orchestration** — pacing-only refresh vs full draft regen based on accumulated feedback signals
 - [x] **Tests:** unit feedback tests + migration + integration API test
 
+### M5-000 — Albion Detection Framework (2026-06-27)
+- [x] **`AlbionDetector` plugin interface** — `initialize()`, `analyze()`, `cancel()`, `progress()`, `version()`, `cache_key()` with GPU-aware context
+- [x] **`AlbionDetectorRegistry`** — hot-swappable detector registration and replacement
+- [x] **`AlbionAnalysisEngine`** — orchestrates detectors with per-detector cache validation, incremental updates, and cancel support
+- [x] **`AlbionAnalyzer` M3 module** — integrates Albion detectors into existing analysis job queue, cache, and progress pipeline
+- [x] **`FrameworkProbeDetector`** — validates framework lifecycle (placeholder until game-specific detectors land in M5-001+)
+- [x] **Dependency wiring** — Albion module receives M3 scene/motion/audio/OCR/object caches; enqueued only for `target_game=albion`
+- [x] **APIs:**
+  - `GET .../media/{media_id}/analysis/albion`
+  - `GET .../analysis/albion/detectors`
+- [x] **Tests:** 10 unit tests + integration API tests
+
 ---
 
 ## Work In Progress
 
-None — Milestone 4 complete.
+None — M5-000 complete; ready for M5-001.
+
+---
+
+## M5 Sub-Milestones
+
+| ID | Module | Status |
+|----|--------|--------|
+| M5-000 | Albion Detection Framework | **Complete** |
+| M5-001 | User Interface Recognition | Not started |
+| M5-002 | OCR Pipeline | Not started |
+| M5-003 | Ability Recognition | Not started |
+| M5-004 | Combat Timeline | Not started |
+| M5-005 | Bomb Event Detection | Not started |
+| M5-006 | Engagement Classification | Not started |
+| M5-007 | Highlight Ranking | Not started |
+| M5-008 | Search Engine | Not started |
+| M5-009 | Timeline Annotation | Not started |
 
 ---
 
@@ -159,7 +188,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **Milestone 5** — TBD (UI integration, export pipeline, or next roadmap item)
+1. **M5-001 — User Interface Recognition** (party frames, health bars, minimap, kill notifications, etc.)
 
 ---
 
@@ -167,8 +196,8 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M4 complete** (10/10 sub-milestones) |
-| Backend tests | 230+ |
+| Milestone | **M5 in progress** (1/10 sub-milestones) |
+| Backend tests | 240+ |
 | Open P0 bugs | 0 |
 
 ---
@@ -188,3 +217,4 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 | 2026-06-27 | M4-007 | AI draft generator, clip selection from scores/highlights, full plan orchestration APIs |
 | 2026-06-27 | M4-008 | Timeline generator, montage plan to editable timeline apply with overwrite protection |
 | 2026-06-27 | M4-009 | AI feedback loop, quality estimates, user feedback actions, preference-driven regeneration |
+| 2026-06-27 | M5-000 | Albion detection framework, plugin registry, M3 integration, framework probe detector |
