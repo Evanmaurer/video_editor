@@ -22,6 +22,7 @@ from montage_backend.jobs.analysis_queue import AnalysisJobQueue, AnalysisQueueI
 from montage_backend.logging import get_logger
 from montage_backend.media.cache import source_fingerprint
 from montage_backend.analysis.albion.albion_analysis import AlbionAnalysisResult
+from montage_backend.analysis.albion.ability.albion_ability_analysis import AlbionAbilityAnalysisResult
 from montage_backend.analysis.albion.ocr.albion_ocr_analysis import AlbionOcrAnalysisResult
 from montage_backend.analysis.albion.ui.albion_ui_analysis import AlbionUiAnalysisResult
 from montage_backend.analysis.audio_analysis import AudioAnalysisResult
@@ -438,6 +439,19 @@ class AnalysisService:
         if ui_result is None or not ui_result.payload:
             return None
         return AlbionUiAnalysisResult.model_validate(ui_result.payload)
+
+    async def get_albion_ability_analysis(
+        self,
+        project_id: str,
+        media_id: str,
+    ) -> AlbionAbilityAnalysisResult | None:
+        albion = await self.get_albion_analysis(project_id, media_id)
+        if albion is None:
+            return None
+        ability_result = albion.detector_results.get("ability")
+        if ability_result is None or not ability_result.payload:
+            return None
+        return AlbionAbilityAnalysisResult.model_validate(ability_result.payload)
 
     async def get_clip_analysis(
         self,

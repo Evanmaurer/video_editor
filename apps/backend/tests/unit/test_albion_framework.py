@@ -183,11 +183,12 @@ async def test_albion_analysis_engine_runs_registered_detectors():
     )
     assert isinstance(result, AlbionAnalysisResult)
     assert result.analyzer_version == ALBION_FRAMEWORK_VERSION
-    assert result.summary.detector_count == 3
+    assert result.summary.detector_count == 4
     assert result.summary.event_count >= 1
     assert "framework_probe" in result.detector_results
     assert "ui" in result.detector_results
     assert "ocr" in result.detector_results
+    assert "ability" in result.detector_results
     assert analysis_engine.is_cache_valid(
         ALBION_FRAMEWORK_VERSION,
         result.cache_key,
@@ -278,11 +279,13 @@ def test_albion_analyzer_cache_key_includes_detector_versions():
     assert "framework_probe" in key
     assert "ui" in key
     assert "ocr" in key
+    assert "ability" in key
 
 
 def test_default_albion_registry_lists_framework_probe():
     registry = build_default_albion_registry()
-    assert registry.list_detectors() == ["framework_probe", "ocr", "ui"]
+    assert registry.list_detectors() == ["framework_probe", "ui", "ocr", "ability"]
     assert registry.detector_versions()["framework_probe"] == "framework-probe-v1.0"
     assert registry.detector_versions()["ui"] == "albion-ui-v1.0"
     assert registry.detector_versions()["ocr"] == "albion-ocr-v1.0"
+    assert registry.detector_versions()["ability"] == "albion-ability-v1.0"

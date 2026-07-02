@@ -33,7 +33,7 @@ class AlbionDetectorRegistry:
         return detector
 
     def list_detectors(self) -> list[str]:
-        return sorted(self._detectors.keys())
+        return list(self._detectors.keys())
 
     def detector_versions(self) -> dict[str, str]:
         return {detector_id: self._detectors[detector_id].version for detector_id in self.list_detectors()}

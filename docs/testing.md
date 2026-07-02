@@ -217,9 +217,16 @@ curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis
 
 ---
 
-### M5-003 — Ability Recognition *(not started)*
+### M5-003 — Ability Recognition *(complete)*
+
+```bash
+python3 -m pytest tests/unit/test_albion_ability_recognition.py -v
+curl "http://127.0.0.1:8000/api/v1/projects/$PROJECT_ID/media/$MEDIA_ID/analysis/albion/abilities"
+```
 
 **Pass if:** ability activations, cooldowns, and ultimates appear as timestamped events; new abilities can be added via config without code changes.
+
+**Broken if:** empty `events` when OCR mentions abilities, missing `cooldown_ready` projections, or catalog changes require code edits.
 
 ---
 

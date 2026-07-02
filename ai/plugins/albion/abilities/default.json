@@ -1,0 +1,31 @@
+{
+  "id": "default",
+  "game_id": "albion",
+  "version": "1.0",
+  "abilities": [
+    {
+      "id": "galatine_pair",
+      "name": "Galatine Pair",
+      "aliases": ["galatine pair", "galatine"],
+      "cooldown_ms": 20000,
+      "is_ultimate": false,
+      "category": "melee"
+    },
+    {
+      "id": "meteor",
+      "name": "Meteor",
+      "aliases": ["meteor"],
+      "cooldown_ms": 120000,
+      "is_ultimate": true,
+      "category": "fire"
+    },
+    {
+      "id": "custom_bomb",
+      "name": "Custom Bomb",
+      "aliases": ["custom bomb", "bomb test"],
+      "cooldown_ms": 45000,
+      "is_ultimate": true,
+      "category": "custom"
+    }
+  ]
+}

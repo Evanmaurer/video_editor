@@ -8,9 +8,9 @@
 
 **Milestone 5: Albion Online Intelligence — IN PROGRESS**
 
-**Current sub-milestone:** M5-003 — Ability Recognition (not started)
+**Current sub-milestone:** M5-004 — Combat Timeline (not started)
 
-**Completed this session:** M5-001 User Interface Recognition
+**Completed this session:** M5-003 Ability Recognition
 
 ---
 
@@ -156,11 +156,20 @@ All 8 sub-milestones complete (scene, motion, audio, OCR, object, embedding, ana
 - [x] **API:** `GET .../media/{media_id}/analysis/albion/ocr`
 - [x] **Tests:** 9 unit tests + integration API test
 
+### M5-003 — Ability Recognition (2026-06-27)
+- [x] **`AlbionAbilityCatalog`** — built-in ability lexicon + external JSON/YAML from `ai/plugins/albion/abilities/`
+- [x] **`AlbionAbilityDetector` plugin** — matches OCR ability mentions to catalog entries; emits activation, cooldown, and ultimate events
+- [x] **M3 / Albion OCR reuse** — prefers same-run Albion OCR payload; falls back to M3 OCR reclassification
+- [x] **Per-frame-window cache** — `frame_windows[].cache_key` per sampled window
+- [x] **Configurable abilities** — add abilities via `ai/plugins/albion/abilities/*.json` without code changes
+- [x] **API:** `GET .../media/{media_id}/analysis/albion/abilities`
+- [x] **Tests:** 8 unit tests + integration API test
+
 ---
 
 ## Work In Progress
 
-None — M5-001 complete; ready for M5-003.
+None — M5-003 complete; ready for M5-004.
 
 ---
 
@@ -171,7 +180,7 @@ None — M5-001 complete; ready for M5-003.
 | M5-000 | Albion Detection Framework | **Complete** |
 | M5-001 | User Interface Recognition | **Complete** |
 | M5-002 | OCR Pipeline | **Complete** |
-| M5-003 | Ability Recognition | Not started |
+| M5-003 | Ability Recognition | **Complete** |
 | M5-004 | Combat Timeline | Not started |
 | M5-005 | Bomb Event Detection | Not started |
 | M5-006 | Engagement Classification | Not started |
@@ -206,7 +215,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 ## Next Priorities
 
-1. **M5-003 — Ability Recognition** (configurable ability detection and cooldown tracking)
+1. **M5-004 — Combat Timeline** (fight start/end, kills, deaths, retreats as searchable timeline entries)
 
 ---
 
@@ -214,7 +223,7 @@ None for M4 scope — all planned montage generation sub-milestones are complete
 
 | Metric | Value |
 |--------|-------|
-| Milestone | **M5 in progress** (3/10 sub-milestones) |
+| Milestone | **M5 in progress** (4/10 sub-milestones) |
 | Backend tests | 250+ |
 | Open P0 bugs | 0 |
 

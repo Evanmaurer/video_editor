@@ -17,6 +17,7 @@ class AlbionDetectorId(str, Enum):
     FRAMEWORK_PROBE = "framework_probe"
     UI = "ui"
     OCR = "ocr"
+    ABILITY = "ability"
 
 
 class AlbionDetectorProgress(BaseModel):

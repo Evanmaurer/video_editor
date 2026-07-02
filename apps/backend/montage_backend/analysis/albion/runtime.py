@@ -10,6 +10,7 @@ from montage_backend.analysis.albion.base import (
     AlbionDetectorProgress,
 )
 from montage_backend.analysis.albion.detectors.framework_probe import FrameworkProbeDetector
+from montage_backend.analysis.albion.detectors.ability_detector import AlbionAbilityDetector
 from montage_backend.analysis.albion.detectors.ocr_detector import AlbionOcrDetector
 from montage_backend.analysis.albion.detectors.ui_detector import AlbionUiDetector
 from montage_backend.analysis.albion.registry import AlbionDetectorRegistry
@@ -99,6 +100,10 @@ class AlbionAnalysisEngine:
                 )
                 if cached_output.cache_key == expected_key:
                     detector_results[detector_id] = cached_output
+                    ctx.extras["detector_results"] = {
+                        key: value.model_dump(mode="json")
+                        for key, value in detector_results.items()
+                    }
                     base_progress = index / total
                     await ctx.report(base_progress, f"Cache hit for {detector_id}")
                     if on_incremental is not None:
@@ -135,6 +140,9 @@ class AlbionAnalysisEngine:
                     frame_rate=frame_rate,
                 )
                 detector_results[detector_id] = output
+                ctx.extras["detector_results"] = {
+                    key: value.model_dump(mode="json") for key, value in detector_results.items()
+                }
                 if on_incremental is not None:
                     result = on_incremental(dict(detector_results))
                     if result is not None:
@@ -156,4 +164,5 @@ def build_default_albion_registry() -> AlbionDetectorRegistry:
     registry.register(FrameworkProbeDetector())
     registry.register(AlbionUiDetector())
     registry.register(AlbionOcrDetector())
+    registry.register(AlbionAbilityDetector())
     return registry
