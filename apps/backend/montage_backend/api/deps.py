@@ -21,6 +21,7 @@ _playback_service: PlaybackService | None = None
 _render_service: "RenderService | None" = None
 _metadata_service: "MetadataService | None" = None
 _analysis_service: "AnalysisService | None" = None
+_montage_plan_service: "MontagePlanService | None" = None
 
 
 async def ensure_database_started() -> None:
@@ -146,3 +147,21 @@ def get_analysis_service():
         )
         media_service.set_analysis_enqueue(_analysis_service.enqueue_default_modules)
     return _analysis_service
+
+
+def get_montage_plan_service():
+    global _montage_plan_service
+    if _montage_plan_service is None:
+        from montage_backend.services.montage_plan_service import MontagePlanService
+
+        analysis_service = get_analysis_service()
+        media_service = get_media_service()
+        _montage_plan_service = MontagePlanService(
+            get_project_service(),
+            timeline_service=get_timeline_service(),
+        )
+        _montage_plan_service.wire_analysis_hooks(
+            get_clip_analysis=analysis_service.get_clip_analysis,
+            list_project_media=media_service.list_media,
+        )
+    return _montage_plan_service

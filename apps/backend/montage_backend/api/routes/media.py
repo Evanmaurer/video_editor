@@ -136,13 +136,18 @@ async def update_media_item(
     return await service.update_media(project_id, media_id, request)
 
 
-@router.delete("/{project_id}/media/{media_id}", status_code=204)
+@router.delete(
+    "/{project_id}/media/{media_id}",
+    status_code=204,
+    response_class=Response,
+)
 async def delete_media_item(
     project_id: str,
     media_id: str,
     service: MediaService = Depends(get_media_service),
-) -> None:
+) -> Response:
     await service.delete_media(project_id, media_id)
+    return Response(status_code=204)
 
 
 @router.post("/{project_id}/media/{media_id}/cancel")

@@ -35,6 +35,7 @@ const REQUIRED_BACKEND_FEATURES = [
   "export",
   "metadata",
   "analysis",
+  "montage",
 ] as const;
 
 function sleep(ms: number): Promise<void> {

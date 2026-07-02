@@ -44,9 +44,19 @@ async def init_project_db(engine: AsyncEngine) -> None:
     from montage_backend.database_migrations import migrate_project_db_schema
     from montage_backend.models.db.analysis_db import AnalysisJobRow, AnalysisModuleCacheRow
     from montage_backend.models.db.media_db import MediaItemRow
+    from montage_backend.models.db.plan_timeline_db import PlanTimelineRow
+    from montage_backend.models.db.plan_feedback_db import PlanFeedbackEventRow, PlanQualityRow
+    from montage_backend.models.db.plan_draft_db import PlanDraftRow
+    from montage_backend.models.db.plan_effects_db import PlanEffectsRow
+    from montage_backend.models.db.plan_pacing_db import PlanPacingRow
+    from montage_backend.models.db.plan_transition_db import PlanTransitionRow
+    from montage_backend.models.db.music_sync_db import MusicSyncRow
+    from montage_backend.models.db.clip_highlight_db import ClipHighlightRow
+    from montage_backend.models.db.clip_score_db import ClipScoreRow
     from montage_backend.models.db.clip_analysis_db import ClipAnalysisSnapshotRow
     from montage_backend.models.db.embedding_db import AnalysisEmbeddingRow
     from montage_backend.models.db.metadata_db import MediaMetadataFeatureRow
+    from montage_backend.models.db.montage_plan_db import MontagePlanRow
     from montage_backend.models.db.project_db import ProjectRow
     from montage_backend.models.db.timeline_db import TimelineRow
 
@@ -58,6 +68,17 @@ async def init_project_db(engine: AsyncEngine) -> None:
         AnalysisJobRow.__table__,
         AnalysisEmbeddingRow.__table__,
         ClipAnalysisSnapshotRow.__table__,
+        ClipScoreRow.__table__,
+        ClipHighlightRow.__table__,
+        MusicSyncRow.__table__,
+        PlanTransitionRow.__table__,
+        PlanPacingRow.__table__,
+        PlanEffectsRow.__table__,
+        PlanDraftRow.__table__,
+        PlanTimelineRow.__table__,
+        PlanQualityRow.__table__,
+        PlanFeedbackEventRow.__table__,
+        MontagePlanRow.__table__,
         TimelineRow.__table__,
     ]
 

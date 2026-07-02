@@ -44,6 +44,17 @@ def test_migrate_project_db_creates_analysis_tables(tmp_path: Path) -> None:
     assert "analysis_jobs" in names
     assert "analysis_embeddings" in names
     assert "clip_analysis_snapshots" in names
+    assert "montage_plans" in names
+    assert "clip_scores" in names
+    assert "clip_highlights" in names
+    assert "music_sync_analyses" in names
+    assert "plan_transition_analyses" in names
+    assert "plan_pacing_analyses" in names
+    assert "plan_effects_analyses" in names
+    assert "plan_draft_analyses" in names
+    assert "plan_timeline_applications" in names
+    assert "plan_quality_analyses" in names
+    assert "plan_feedback_events" in names
     assert "media_metadata_features" in names
     assert "retry_count" in column_names
     assert "max_retries" in column_names

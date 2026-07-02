@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from montage_backend.api.deps import get_metadata_service
 from montage_backend.models.domain.metadata import (
@@ -64,10 +64,15 @@ async def upsert_media_metadata_feature(
     return await service.upsert_feature(project_id, media_id, feature_key, request)
 
 
-@router.delete("/{project_id}/media/{media_id}/metadata", status_code=204)
+@router.delete(
+    "/{project_id}/media/{media_id}/metadata",
+    status_code=204,
+    response_class=Response,
+)
 async def invalidate_media_metadata(
     project_id: str,
     media_id: str,
     service: MetadataService = Depends(get_metadata_service),
-) -> None:
+) -> Response:
     await service.invalidate_metadata(project_id, media_id)
+    return Response(status_code=204)
